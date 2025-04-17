@@ -1,0 +1,32 @@
+'
+FILE HIERACHY:
+
+
+vn_gross_to_net_calculator/
+├── api/
+│   ├── __init__.py
+│   ├── main.py
+│   └── routers/
+│       ├── __init__.py
+│       └── gross_net.py
+│
+├── core/
+│   ├── __init__.py
+│   ├── calculator.py
+│   ├── constants.py
+│   └── models.py
+│
+├── frontend/
+│   └── app.py
+│
+├── tests/
+│   ├── __init__.py
+│   ├── test_calculator.py
+│   └── data/
+│       └── data_test_gross_net.xlsx
+│
+├── .gitignore
+├── LICENSE
+├── pyproject.toml
+├── README.md
+└── requirements.txt

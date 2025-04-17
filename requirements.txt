@@ -1,0 +1,15 @@
+# This file lists the core dependencies for the application.
+# It can be used with 'pip install -r requirements.txt'.
+# However, managing dependencies via pyproject.toml is generally preferred for modern projects.
+# This file can be generated from pyproject.toml or a lock file if needed.
+
+streamlit >= 1.20.0
+fastapi >= 0.90.0
+uvicorn[standard] >= 0.20.0
+pydantic >= 2.0.0
+
+# Optional dependencies for testing (install separately or via pyproject.toml's [test] extra):
+# pytest >= 7.0.0
+# requests >= 2.20.0
+# pandas >= 1.5.0
+# openpyxl >= 3.0.0

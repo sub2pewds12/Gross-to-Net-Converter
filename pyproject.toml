@@ -1,0 +1,82 @@
+# Specifies the build system (setuptools in this case)
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+# Defines project metadata and dependencies (PEP 621)
+[project]
+name = "vn_gross_net_calculator"
+version = "0.1.0" # Update version as needed
+description = "A calculator for Vietnamese Gross to Net income (Apr 2025), with Streamlit UI and FastAPI."
+readme = "README.md" # Link to the README file
+requires-python = ">=3.9" # Specify compatible Python versions
+license = { file = "LICENSE" } # Link to the LICENSE file
+authors = [
+    # Add authors here
+    { name = "Your Name", email = "your.email@example.com" },
+]
+# Add keywords for discoverability (optional)
+# keywords = ["vietnam", "income", "tax", "calculator", "streamlit", "fastapi"]
+
+# Core dependencies needed to run the main logic, API, and UI
+dependencies = [
+    "streamlit >= 1.20.0",         # For the frontend UI (frontend/app.py)
+    "fastapi >= 0.90.0",           # For the API framework (api/)
+    "uvicorn[standard] >= 0.20.0", # ASGI server to run FastAPI
+    "pydantic >= 2.0.0",           # For data validation and modeling (used in core/, api/)
+]
+
+# Optional dependencies, e.g., for testing or development
+[project.optional-dependencies]
+test = [
+    # Dependencies needed only for running tests
+    "pytest >= 7.0.0",          # Test runner framework
+    "requests >= 2.20.0",       # For testing API endpoints (optional)
+    "pandas >= 1.5.0",          # Needed if test_calculator uses excel data
+    "openpyxl >= 3.0.0",        # Needed by pandas to read/write xlsx files
+]
+dev = [
+    # Development tools (e.g., linters, formatters) - can add more
+    "ruff",                     # Fast linter/formatter
+    # Add other dev tools like mypy, black etc. if desired
+]
+
+# --- Build tool specific configurations ---
+
+# Configuration for setuptools build backend
+[tool.setuptools]
+# Automatically find packages in specified directories
+# Update this list to include your renamed/new packages
+packages = ["core", "api", "frontend"]
+# Or use auto-discovery (might require specific setup)
+# package-dir = {"" = "."} # Example if packages are directly under root
+# find = {namespaces = false} # Example for simpler finding
+
+# If frontend/app.py isn't automatically included as part of a package,
+# ensure it's included in the distribution if necessary (e.g., using MANIFEST.in or package_data)
+# package_data = {"frontend": ["app.py"]} # Example, syntax might vary
+
+# Optional: Specify entry points if creating command-line scripts
+# [project.scripts]
+# vn-calculator-ui = "frontend.app:main" # Example if app.py had a main() function
+# vn-calculator-api = "api.main:app" # Not typical for running API via script
+
+
+# --- Optional: Tool configurations ---
+
+# Example: Configuration for pytest (can also be in pytest.ini or tox.ini)
+# [tool.pytest.ini_options]
+# addopts = "-sv" # Example options: verbose, show locals
+# testpaths = [
+#     "tests",
+# ]
+# pythonpath = "." # Add project root to python path for imports
+
+# Example: Configuration for Ruff linter/formatter
+# [tool.ruff]
+# line-length = 88
+# select = ["E", "W", "F", "I", "UP", "B"] # Example rules to enable
+# ignore = [] # Example rules to ignore
+
+# [tool.ruff.format]
+# quote-style = "double"

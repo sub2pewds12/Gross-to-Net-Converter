@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 # Defines project metadata and dependencies (PEP 621)
 [project]
 name = "vn_gross_net_calculator"
-version = "0.1.0" # Update version as needed
+version = "0.1.1" # Bump version for changes
 description = "A calculator for Vietnamese Gross to Net income (Apr 2025), with Streamlit UI and FastAPI."
 readme = "README.md" # Link to the README file
 requires-python = ">=3.9" # Specify compatible Python versions
@@ -16,7 +16,7 @@ authors = [
     { name = "Your Name", email = "your.email@example.com" },
 ]
 # Add keywords for discoverability (optional)
-# keywords = ["vietnam", "income", "tax", "calculator", "streamlit", "fastapi"]
+# keywords = ["vietnam", "income", "tax", "calculator", "streamlit", "fastapi", "pandas"]
 
 # Core dependencies needed to run the main logic, API, and UI
 dependencies = [
@@ -24,6 +24,8 @@ dependencies = [
     "fastapi >= 0.90.0",           # For the API framework (api/)
     "uvicorn[standard] >= 0.20.0", # ASGI server to run FastAPI
     "pydantic >= 2.0.0",           # For data validation and modeling (used in core/, api/)
+    "pandas >= 1.5.0",             # <-- ADDED: For reading Excel files
+    "openpyxl >= 3.0.0",           # <-- ADDED: Excel engine for pandas (.xlsx)
 ]
 
 # Optional dependencies, e.g., for testing or development

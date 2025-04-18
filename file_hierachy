@@ -1,8 +1,7 @@
 '
-FILE HIERACHY:
+FILE HIERACHY v2.0:
 
-
-vn_gross_to_net_calculator/
+vn_gross_net_calculator/
 ├── api/
 │   ├── __init__.py
 │   ├── main.py
@@ -16,6 +15,11 @@ vn_gross_to_net_calculator/
 │   ├── constants.py
 │   └── models.py
 │
+├── docker/
+│   ├── api.Dockerfile
+│   ├── frontend.Dockerfile
+│   └── docker-compose.yml
+│
 ├── frontend/
 │   └── app.py
 │
@@ -25,6 +29,7 @@ vn_gross_to_net_calculator/
 │   └── data/
 │       └── data_test_gross_net.xlsx
 │
+├── .dockerignore
 ├── .gitignore
 ├── LICENSE
 ├── pyproject.toml

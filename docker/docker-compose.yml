@@ -1,0 +1,22 @@
+services:
+  api:
+    build:
+      context: ..
+      dockerfile: docker/api.dockerfile # Changed to lowercase 'd'
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../core:/app/core
+      - ../api:/app/api
+
+  frontend:
+    build:
+      context: ..
+      dockerfile: docker/frontend.dockerfile # Changed to lowercase 'd'
+    ports:
+      - "8501:8501"
+    volumes:
+      - ../core:/app/core
+      - ../frontend:/app/frontend
+    depends_on:
+      - api

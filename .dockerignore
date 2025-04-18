@@ -1,0 +1,96 @@
+# Git files - prevent Git history from being included
+.git
+.gitignore
+
+# Docker files - prevent Docker config from being included in the image itself
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Python virtual environment - crucial to exclude
+.venv
+venv
+env
+ENV
+*/.venv
+*/venv
+*/env
+*/ENV
+
+# Python cache files and compiled files
+__pycache__
+*.py[cod]
+*$py.class
+
+# Python distribution / packaging / eggs
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports - usually not needed in final image
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+# Exclude the tests directory itself from the application image
+tests/
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE / Editor specific files
+.idea/
+.vscode/
+*.sublime-*
+*.komodoproject
+nbproject/
+
+# Secrets / Environment specific files
+.env
+*.env
+secrets.toml
+*.local
+
+# Other logs / temporary files
+*.log
+*.tmp
+*.swp
+*.bak
+
+# Node / JS related (if any frontend build steps were involved)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

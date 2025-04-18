@@ -1,14 +1,14 @@
-# Vietnam Gross Net Income Calculator (vn_gross_net_calculator)
+# Vietnam Gross Net Income Calculator (`vn_gross_net_calculator`)
 
-This project provides a tool to calculate Vietnamese Net income from Gross income based on regulations applicable around **April 2025** (current date: Thursday, April 17, 2025 at 8:33:03 PM +07).
+This project provides a tool to calculate Vietnamese Net income from Gross income based on regulations applicable around **April 2025** (current date: Saturday, April 19, 2025 at 12:12 AM +07).
 
 It includes:
 
-1. A core Python package (`core/`) for the calculation logic (Backend Logic).
-2. A simple web UI built with Streamlit (`frontend/app.py`).
-3. A web API built with FastAPI (`api/`) to access the calculations programmatically.
+1.  A core Python package (`core/`) for the calculation logic (Backend Logic).
+2.  A web UI built with Streamlit (`frontend/app.py`) supporting single calculations and batch processing via Excel upload.
+3.  A RESTful web API built with FastAPI (`api/`) to access the single calculation logic programmatically.
 
-> **Disclaimer:**  
+> **Disclaimer:**
 > Calculation logic is based on publicly available information (e.g., Decree 74/2024/ND-CP, Resolution 954/2020/UBTVQH14, standard insurance rates) and interpretations current as of April 2025.  
 > The base salary for the BHXH/BHYT cap uses 2,340,000 VND based on UI hints/potential reforms.  
 > This tool is for informational purposes only. Always consult official sources or a qualified professional for financial decisions.  
@@ -18,10 +18,15 @@ It includes:
 
 ## Features
 
-- Calculates Net Income, Personal Income Tax (PIT), and mandatory insurance contributions (BHXH, BHYT, BHTN).
-- Accounts for personal and dependent allowances.
-- Considers regional minimum wages for insurance caps.
-- Provides both a Streamlit Web UI (Frontend) and a FastAPI Web API.
+* Calculates Net Income, Personal Income Tax (PIT), and mandatory insurance contributions (BHXH, BHYT, BHTN).
+* Accounts for personal and dependent allowances.
+* Considers regional minimum wages for insurance caps.
+* Provides a Streamlit Web UI (Frontend) with:
+  * Single calculation input.
+  * Batch calculation via **Excel file upload** (`.xlsx`, `.xls`).
+  * Downloadable results (CSV, Excel).
+* Provides a FastAPI Web API for single calculations (`POST /calculate/gross-to-net`).
+* Includes Docker configuration (`Dockerfile`s and `docker-compose.yml`) for containerized development and deployment.
 
 ---
 
@@ -43,23 +48,29 @@ source .venv/bin/activate  # On Windows use `.venv\Scripts\activate`
 
 ### 3. Install dependencies
 
-#### Using `uv` (recommended)
+#### Using uv (recommended)
 
 ```bash
 pip install uv
-uv pip install "streamlit>=1.20.0" "fastapi>=0.90.0" "uvicorn[standard]>=0.20.0" "pydantic>=2.0.0"
-# To include test dependencies:
-uv pip install "pytest>=7.0.0" "requests>=2.20.0" "pandas>=1.5.0" "openpyxl>=3.0.0"
+uv pip install \
+  "streamlit>=1.20.0" \
+  "fastapi>=0.90.0" \
+  "uvicorn[standard]>=0.20.0" \
+  "pydantic>=2.0.0" \
+  "pandas>=1.5.0" \
+  "openpyxl>=3.0.0"
+# Optional: For testing
+uv pip install "pytest>=7.0.0" "requests>=2.20.0"
 ```
 
-#### Or using `pip`
+#### Using pip
 
 ```bash
-# Install from pyproject.toml
-pip install .
-
-# Or for testing:
+# Install runtime and test dependencies from pyproject.toml
 pip install .[test]
+
+# Or just runtime dependencies
+pip install .
 
 # Or from requirements.txt
 pip install -r requirements.txt
@@ -69,49 +80,74 @@ pip install -r requirements.txt
 
 ## Running the Application
 
-### 1. Frontend (Streamlit UI)
+### Option 1: Using Docker Compose (Recommended)
 
-Run the Streamlit application:
+Ensure Docker is installed. In the project root:
 
 ```bash
-streamlit run frontend/app.py
+docker compose -f docker/docker-compose.yml up --build
 ```
 
-Then open your browser to the provided URL (usually [http://localhost:8501](http://localhost:8501)).
+- Web UI: http://localhost:8501
+- API Docs: http://localhost:8000/docs
 
----
+To stop and clean up:
 
-### 2. API (FastAPI)
+```bash
+docker compose -f docker/docker-compose.yml down
+```
 
-Run the FastAPI application using Uvicorn:
+### Option 2: Manually without Docker
 
+#### Run API:
 ```bash
 uvicorn api.main:app --reload --host 0.0.0.0 --port 8000
 ```
+Visit: http://localhost:8000/docs
 
-- `--reload`: Automatically restarts the server on code changes (for development).
-- `--host 0.0.0.0`: Makes the API accessible on your network (use `127.0.0.1` for localhost only).
-- `--port 8000`: Port to serve the API.
-
-Visit the API docs (Swagger UI) at: [http://localhost:8000/docs](http://localhost:8000/docs)
-
-#### Example API Call (using curl)
-
+#### Run Frontend:
 ```bash
-curl -X POST "http://localhost:8000/calculate/gross-to-net" \
--H "Content-Type: application/json" \
--d '{
-  "gross_income": 30000000,
-  "num_dependents": 1,
-  "region": 1
-}'
+streamlit run frontend/app.py
+```
+Visit: http://localhost:8501
+
+### Option 3: Using Pre-Built Docker Images
+
+Create a `docker-compose-run.yml`:
+
+```yaml
+services:
+  api:
+    image: leanhkhoi1010/vn-gross-net-api:latest
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  frontend:
+    image: leanhkhoi1010/vn-gross-net-frontend:latest
+    ports:
+      - "8501:8501"
+    depends_on:
+      - api
+    restart: unless-stopped
+```
+
+Run:
+```bash
+docker compose -f docker-compose-run.yml pull
+docker compose -f docker-compose-run.yml up -d
+```
+
+To stop:
+```bash
+docker compose -f docker-compose-run.yml down
 ```
 
 ---
 
 ## Running Tests
 
-To run automated tests (requires `pytest`, and optionally `pandas`, `openpyxl`):
+Ensure dependencies are installed:
 
 ```bash
 pytest
@@ -123,15 +159,24 @@ pytest
 
 ```
 vn_gross_net_calculator/
-├── api/             # FastAPI application code (API Layer)
-├── core/            # Core calculation logic (Backend Logic)
-├── frontend/        # Streamlit UI (Frontend Layer)
-├── tests/           # Automated tests
+├── api/            # FastAPI application code
+│   └── routers/
+│       └── gross_net.py
+├── core/           # Calculation logic
+│   ├── calculator.py
+│   ├── constants.py
+│   └── models.py
+├── docker/         # Docker config
+├── frontend/       # Streamlit UI
+│   └── app.py
+├── tests/          # Automated tests
+│   └── data/data_test_gross_net.xlsx
 ├── .gitignore
+├── .dockerignore
 ├── LICENSE
-├── pyproject.toml   # Project configuration and dependencies
+├── pyproject.toml
 ├── README.md
-└── requirements.txt # Alternative dependency list
+└── requirements.txt
 ```
 
 ---
@@ -140,9 +185,8 @@ vn_gross_net_calculator/
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
----
-
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+
 

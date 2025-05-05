@@ -75,10 +75,27 @@ packages = ["core", "api", "frontend"]
 # pythonpath = "." # Add project root to python path for imports
 
 # Example: Configuration for Ruff linter/formatter
-# [tool.ruff]
-# line-length = 88
-# select = ["E", "W", "F", "I", "UP", "B"] # Example rules to enable
-# ignore = [] # Example rules to ignore
+[tool.ruff]
+line-length = 88
+# Add other global settings if needed
+
+[tool.ruff.lint]
+# Select the rules you generally want to enforce
+select = ["E", "W", "F", "I", "UP", "B"] # Example rules to enable
+# Ignore certain rules globally if needed
+# ignore = []
+
+# Ignore specific rules for specific files
+# Use glob patterns relative to the pyproject.toml location
+per-file-ignores = {
+    "api/main.py" = ["F401", "F541"], # Ignore unused import and unused f-string in api/main.py
+    "core/models.py" = ["F401"],      # Ignore unused imports in core/models.py
+    "core/calculator.py" = ["F401"],  # Ignore unused imports in core/calculator.py
+    "frontend/app.py" = ["F401"],     # Ignore unused imports in frontend/app.py
+    "tests/test_calculator.py" = ["F401"] # Ignore unused imports in test_calculator.py
+}
 
 # [tool.ruff.format]
 # quote-style = "double"
+
+

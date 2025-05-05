@@ -25,5 +25,5 @@ PIT_BRACKETS = [
     {"limit": 32_000_000, "rate": 0.20, "deduction": 1_650_000},
     {"limit": 52_000_000, "rate": 0.25, "deduction": 3_250_000},
     {"limit": 80_000_000, "rate": 0.30, "deduction": 5_850_000},
-    {"limit": float('inf'), "rate": 0.35, "deduction": 9_850_000},
+    {"limit": float("inf"), "rate": 0.35, "deduction": 9_850_000},
 ]

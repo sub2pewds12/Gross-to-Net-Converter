@@ -27,10 +27,13 @@ app = FastAPI(
         "url": "https://opensource.org/licenses/MIT",
     },
     openapi_tags=[
-        {"name": "Calculations", "description": "Endpoints related to income calculations."},
+        {
+            "name": "Calculations",
+            "description": "Endpoints related to income calculations.",
+        },
         {"name": "Health", "description": "Endpoints for checking API status."},
         {"name": "Root", "description": "Basic API information."},
-    ]
+    ],
 )
 
 # origins = [
@@ -47,6 +50,7 @@ app = FastAPI(
 
 app.include_router(gross_net.router, prefix="/calculate")
 
+
 @app.get("/", tags=["Root"], summary="API Welcome Message")
 async def read_root():
     """
@@ -56,10 +60,13 @@ async def read_root():
     return {
         "message": "Welcome to the VN Gross Net Calculator API!",
         "documentation": app.docs_url,
-        "alternative_documentation": app.redoc_url
-        }
+        "alternative_documentation": app.redoc_url,
+    }
 
-@app.get("/health", status_code=status.HTTP_200_OK, tags=["Health"], summary="Health Check")
+
+@app.get(
+    "/health", status_code=status.HTTP_200_OK, tags=["Health"], summary="Health Check"
+)
 async def health_check():
-    """ Basic health check endpoint to verify API service status. Returns status 'ok'. """
+    """Basic health check endpoint to verify API service status. Returns status 'ok'."""
     return {"status": "healthy"}

@@ -1,10 +1,12 @@
 # tests/test_calculator.py
 
 import pytest
+
 # import pandas as pd  # Uncomment if using pandas to read test data
 # from pathlib import Path
 from core.calculator import calculate_gross_to_net
 from core.models import GrossNetInput, GrossNetResult
+
 
 def test_basic_gross_to_net_r1_1dep():
     input_data = GrossNetInput(gross_income=30_000_000, num_dependents=1, region=1)
@@ -19,6 +21,7 @@ def test_basic_gross_to_net_r1_1dep():
     assert result.insurance_breakdown.health_insurance == 450_000
     assert result.insurance_breakdown.unemployment_insurance == 300_000
 
+
 def test_lower_income_no_dependents_r1():
     input_data = GrossNetInput(gross_income=20_000_000, num_dependents=0, region=1)
     result = calculate_gross_to_net(input_data)
@@ -27,6 +30,7 @@ def test_lower_income_no_dependents_r1():
     assert result.personal_income_tax == 440_000
     assert result.total_insurance_contribution == 2_100_000
     assert result.taxable_income == 6_900_000
+
 
 def test_high_income_with_dependents_r1():
     input_data = GrossNetInput(gross_income=100_000_000, num_dependents=2, region=1)
@@ -50,10 +54,12 @@ def test_region_4_minimum_wage_level():
     assert result.total_insurance_contribution == 420_000
     assert result.taxable_income == 0
 
+
 def test_invalid_region_raises_error():
     input_data = GrossNetInput(gross_income=10_000_000, num_dependents=0, region=5)
     with pytest.raises(ValueError, match="Invalid region: 5"):
         calculate_gross_to_net(input_data)
+
 
 # @pytest.mark.skip(reason="Excel test data file not implemented/available")
 # def test_gross_to_net_from_excel():

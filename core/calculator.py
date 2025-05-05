@@ -2,6 +2,7 @@ import math
 from . import constants as const
 from .models import GrossNetInput, GrossNetResult, InsuranceBreakdown
 
+
 def calculate_gross_to_net(data: GrossNetInput) -> GrossNetResult:
     """
     Calculates Net Income from Gross Income based on Vietnamese regulations (Apr 2025).
@@ -41,7 +42,7 @@ def calculate_gross_to_net(data: GrossNetInput) -> GrossNetResult:
         social_insurance=round(bhxh),
         health_insurance=round(bhyt),
         unemployment_insurance=round(bhtn),
-        total=round(total_insurance)
+        total=round(total_insurance),
     )
 
     pre_tax_income = gross_income - total_insurance
@@ -57,10 +58,12 @@ def calculate_gross_to_net(data: GrossNetInput) -> GrossNetResult:
     previous_limit = 0
     for bracket in const.PIT_BRACKETS:
         if taxable_income > previous_limit:
-            taxable_at_current_rate = min(taxable_income, bracket["limit"]) - previous_limit
+            taxable_at_current_rate = (
+                min(taxable_income, bracket["limit"]) - previous_limit
+            )
             pit += taxable_at_current_rate * bracket["rate"]
         else:
-             break
+            break
         previous_limit = bracket["limit"]
 
     pit = max(0, round(pit))

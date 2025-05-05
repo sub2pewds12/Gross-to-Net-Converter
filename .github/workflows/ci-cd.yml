@@ -1,0 +1,96 @@
+# .github/workflows/ci-cd.yml
+
+name: CI/CD for VN Gross Net Calculator
+
+# Controls when the workflow will run
+on:
+  push:
+    branches: [ "main" ] # Run on pushes to the main branch
+  pull_request:
+    branches: [ "main" ] # Run on pull requests targeting the main branch
+
+jobs:
+  # Job to run linters and tests
+  lint_and_test:
+    name: Lint & Test
+    runs-on: ubuntu-latest # Use the latest Ubuntu runner
+
+    steps:
+      # Step 1: Check out the repository code
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Python environment
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      # Step 3: Cache dependencies
+      - name: Cache pip dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip # Cache directory for pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/pyproject.toml') }} # Cache key based on OS and pyproject.toml hash
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      # Step 4: Install dependencies (including test/dev dependencies)
+      - name: Install dependencies
+        run: pip install .[test,dev] # Installs project + test + dev dependencies from pyproject.toml
+
+      # Step 5: Lint with Ruff (Check only)
+      - name: Lint with Ruff
+        run: ruff check .
+
+      # Step 6: Check formatting with Ruff (Check only)
+      - name: Check formatting with Ruff
+        run: ruff format --check .
+
+      # Step 7: Run tests with Pytest
+      - name: Run tests
+        run: pytest
+
+  # Job to build and push Docker images
+  build_and_push:
+    name: Build & Push Docker Images
+    runs-on: ubuntu-latest
+    needs: lint_and_test # Only run if lint_and_test job succeeds
+
+    # IMPORTANT: Only run this job on pushes to the main branch, not on pull requests
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      # Step 1: Check out the repository code
+      - name: Check out code
+        uses: actions/checkout@v4
+
+      # Step 2: Set up Docker Buildx (enhances docker build capabilities)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # Step 3: Log in to Docker Hub
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }} # Use secret stored in GitHub repo settings
+          password: ${{ secrets.DOCKERHUB_TOKEN }}    # Use secret stored in GitHub repo settings
+
+      # Step 4: Build and push API image
+      - name: Build and push API image
+        uses: docker/build-push-action@v6
+        with:
+          context: . # Build context is the root directory
+          file: ./docker/api.Dockerfile # Path to the API Dockerfile
+          push: true # Push the image after building
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/vn-gross-net-api:latest # Tag format: user/repo:tag
+
+      # Step 5: Build and push Frontend image
+      - name: Build and push Frontend image
+        uses: docker/build-push-action@v6
+        with:
+          context: . # Build context is the root directory
+          file: ./docker/frontend.Dockerfile # Path to the Frontend Dockerfile
+          push: true # Push the image after building
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/vn-gross-net-frontend:latest # Tag format: user/repo:tag
+

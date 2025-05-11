@@ -14,7 +14,7 @@ services:
       context: ..
       dockerfile: docker/frontend.dockerfile # Changed to lowercase 'd'
     ports:
-      - "8501:8501"
+      - "8501:850W"
     volumes:
       - ../core:/app/core
       - ../frontend:/app/frontend

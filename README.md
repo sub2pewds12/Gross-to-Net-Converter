@@ -1,6 +1,4 @@
-Here is a revised version of your `README.md` file with fixes and improvements for clarity and consistency:
 
-````markdown
 # Vietnam Gross Net Income Calculator (vn_gross_net_calculator)
 
 **Date:** Tuesday, May 13, 2025  

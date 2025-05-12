@@ -5,13 +5,11 @@ import pandas as pd
 import io
 import datetime
 import logging
-import os # Added for environment variables
-from dotenv import load_dotenv # Added
+import os
+from dotenv import load_dotenv # Standard library imports first, then third-party, then local
 import textwrap
 
-# Load environment variables from .env file (for local development)
-load_dotenv()
-
+# Local application imports
 from core.models import GrossNetInput
 from core.calculator import calculate_gross_to_net
 from core.constants import REGIONAL_MINIMUM_WAGES
@@ -19,6 +17,10 @@ from core.exceptions import (
     CoreCalculationError, InvalidRegionError, InvalidInputDataError,
     NegativeGrossIncomeError, NegativeDependentsError, MissingConfigurationError
 )
+
+# Load environment variables from .env file (for local development)
+# This should be called after all imports.
+load_dotenv()
 
 # --- Basic Logging Configuration ---
 LOG_LEVEL_FROM_ENV = os.getenv("LOG_LEVEL", "INFO").upper()
@@ -35,8 +37,6 @@ APP_ENVIRONMENT = os.getenv("API_ENV", "development") # Using API_ENV for consis
 logger.info(f"Streamlit application starting in '{APP_ENVIRONMENT}' environment.")
 
 # --- API URL (if frontend were to call the deployed API) ---
-# This is read from environment variables.
-# For current functionality where core logic is called directly, this is for demonstration/future use.
 API_BASE_URL = os.getenv("API_URL", "http://localhost:8000") # Default for local dev if not set
 logger.info(f"API_BASE_URL (for potential future API calls): {API_BASE_URL}")
 
@@ -386,6 +386,8 @@ insurance rates). Base salary (`Lương cơ sở`) for the BHXH/BHYT cap uses
 sources or a professional for financial decisions.
 """
 st.caption(textwrap.dedent(disclaimer))
+
+
 
 
 

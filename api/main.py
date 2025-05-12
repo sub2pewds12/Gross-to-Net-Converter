@@ -2,7 +2,7 @@
 
 import logging
 import os
-from dotenv import load_dotenv # Import python-dotenv
+from dotenv import load_dotenv  # Import python-dotenv
 from fastapi import FastAPI, status
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
@@ -18,8 +18,8 @@ load_dotenv()
 LOG_LEVEL_FROM_ENV = os.getenv("LOG_LEVEL", "INFO").upper()
 logging.basicConfig(
     level=LOG_LEVEL_FROM_ENV,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(module)s:%(funcName)s:%(lineno)d - %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S',
+    format="%(asctime)s - %(name)s - %(levelname)s - %(module)s:%(funcName)s:%(lineno)d - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
 )
 logger = logging.getLogger(__name__)
 logger.info(f"Logging level set to: {LOG_LEVEL_FROM_ENV}")
@@ -42,12 +42,14 @@ Uses data like Personal/Dependent Allowances, Regional Minimum Wages,
 Insurance Rates/Caps, and Progressive PIT brackets.
 """
 
+
 # --- Lifespan Event Handler ---
 @asynccontextmanager
 async def lifespan(app_instance: FastAPI):
     logger.info("FastAPI application startup via lifespan event.")
     yield
     logger.info("FastAPI application shutdown via lifespan event.")
+
 
 # --- Initialize FastAPI app ---
 app = FastAPI(
@@ -64,11 +66,14 @@ app = FastAPI(
         "url": "https://opensource.org/licenses/MIT",
     },
     openapi_tags=[
-        {"name": "Calculations", "description": "Endpoints related to income calculations."},
+        {
+            "name": "Calculations",
+            "description": "Endpoints related to income calculations.",
+        },
         {"name": "Health", "description": "Endpoints for checking API status."},
         {"name": "Root", "description": "Basic API information."},
     ],
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 # --- Optional: Configure CORS ---
@@ -90,19 +95,20 @@ app = FastAPI(
 app.include_router(gross_net.router, prefix="/calculate")
 logger.info("Included gross_net router with prefix /calculate.")
 
+
 @app.get("/", tags=["Root"], summary="API Welcome Message")
 async def read_root():
     logger.info("Root endpoint '/' accessed.")
     return {
         "message": "Welcome to the VN Gross Net Calculator API!",
         "documentation": app.docs_url,
-        "alternative_documentation": app.redoc_url
-        }
+        "alternative_documentation": app.redoc_url,
+    }
 
-@app.get("/health", status_code=status.HTTP_200_OK, tags=["Health"], summary="Health Check")
+
+@app.get(
+    "/health", status_code=status.HTTP_200_OK, tags=["Health"], summary="Health Check"
+)
 async def health_check():
     logger.info("Health check endpoint '/health' accessed, returning status: ok.")
     return {"status": "healthy"}
-
-
-

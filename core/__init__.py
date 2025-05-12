@@ -18,7 +18,7 @@ from .exceptions import (
     NegativeDependentsError,
     InsuranceCalculationError,
     PITCalculationError,
-    MissingConfigurationError
+    MissingConfigurationError,
 )
 
 # Define what gets imported when someone does 'from core import *'

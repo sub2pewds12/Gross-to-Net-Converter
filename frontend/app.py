@@ -3,35 +3,45 @@
 import streamlit as st
 import pandas as pd
 import io
-import datetime # Kept for current_date_str, can be removed if date is static
-import logging # Added for structured logging
-import os # Added for potential environment variable reading
-import textwrap # For formatting disclaimer
+import datetime
+import logging
+import os # Added for environment variables
+from dotenv import load_dotenv # Added
+import textwrap
 
-# Import core components
-from core.models import GrossNetInput # GrossNetResult and InsuranceBreakdown are not directly typed here
+# Load environment variables from .env file (for local development)
+load_dotenv()
+
+from core.models import GrossNetInput
 from core.calculator import calculate_gross_to_net
 from core.constants import REGIONAL_MINIMUM_WAGES
-# Import custom exceptions to handle them specifically
 from core.exceptions import (
-    CoreCalculationError,
-    InvalidRegionError,
-    InvalidInputDataError,
-    NegativeGrossIncomeError,
-    NegativeDependentsError,
-    MissingConfigurationError
+    CoreCalculationError, InvalidRegionError, InvalidInputDataError,
+    NegativeGrossIncomeError, NegativeDependentsError, MissingConfigurationError
 )
 
 # --- Basic Logging Configuration ---
-# In a real app, this might be more sophisticated or configured externally
+LOG_LEVEL_FROM_ENV = os.getenv("LOG_LEVEL", "INFO").upper()
 logging.basicConfig(
-    level=os.getenv("LOG_LEVEL", "INFO").upper(),
+    level=LOG_LEVEL_FROM_ENV,
     format='%(asctime)s - %(name)s - %(levelname)s - %(module)s:%(funcName)s:%(lineno)d - %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S',
 )
 logger = logging.getLogger(__name__)
+logger.info(f"Logging level set to: {LOG_LEVEL_FROM_ENV}")
 
-# --- Constants ---
+# --- Application Environment ---
+APP_ENVIRONMENT = os.getenv("API_ENV", "development") # Using API_ENV for consistency
+logger.info(f"Streamlit application starting in '{APP_ENVIRONMENT}' environment.")
+
+# --- API URL (if frontend were to call the deployed API) ---
+# This is read from environment variables.
+# For current functionality where core logic is called directly, this is for demonstration/future use.
+API_BASE_URL = os.getenv("API_URL", "http://localhost:8000") # Default for local dev if not set
+logger.info(f"API_BASE_URL (for potential future API calls): {API_BASE_URL}")
+
+
+# --- Constants for UI ---
 EXPECTED_COLUMNS = {
     'gross': 'GrossIncome',
     'dependents': 'Dependents',
@@ -44,7 +54,7 @@ OUTPUT_COLUMNS = [
 
 # --- Helper Functions ---
 def format_vnd(value):
-    if pd.isna(value) or value is None: # Handle None as well
+    if pd.isna(value) or value is None:
         return ""
     try:
         return f"{float(value):,.0f} VND"
@@ -74,23 +84,16 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# Example of reading an API URL if the frontend were to call the API
-# For current functionality (direct core call), this is not strictly used by the calculator.
-# API_BASE_URL = os.getenv("API_URL", "http://localhost:8000") # Default for local dev if calling API
-# logger.info(f"API_BASE_URL (for potential future use): {API_BASE_URL}")
-
-
-current_date_str = datetime.date.today().strftime("%A, %B %d, %Y") # Use actual current date
+current_date_str = datetime.date.today().strftime("%A, %B %d, %Y")
 
 st.title("🇻🇳 Vietnam Gross↔️Net Income Calculator")
 st.caption(
     f"Calculates Net income based on Gross salary, dependents, and region. "
-    f"Based on regulations circa April 2025. Current date: {current_date_str}"
+    f"Based on regulations circa April 2025. Current date: {current_date_str} (Env: {APP_ENVIRONMENT})"
 )
 
 tab1, tab2 = st.tabs(["Single Calculation", "Batch Upload (Excel)"])
 
-# --- Tab 1: Single Calculation ---
 with tab1:
     st.header("Single Income Calculation")
     col1_single, col2_single = st.columns(2)
@@ -127,7 +130,7 @@ with tab1:
             f"Single calculation initiated with: Gross={gross_income_single}, "
             f"Dependents={num_dependents_single}, Region={region_single}"
         )
-        if gross_income_single <= 0: # Basic validation, Pydantic handles more in GrossNetInput
+        if gross_income_single <= 0:
             st.error("Gross Monthly Income must be greater than zero.", icon="⚠️")
             logger.warning("Single calculation: Invalid gross income <= 0.")
         else:
@@ -167,18 +170,15 @@ with tab1:
             except MissingConfigurationError as e:
                 st.error(f"Configuration Error: {str(e)}. Please contact support.", icon="⚙️")
                 logger.error(f"Single calculation configuration error: {str(e)}", exc_info=True)
-            except CoreCalculationError as e: # Catch other specific core errors
+            except CoreCalculationError as e:
                 st.error(f"Calculation Error: {str(e)}", icon="❌")
                 logger.error(f"Single calculation core error: {str(e)}", exc_info=True)
             except Exception as e:
                 st.error(f"An unexpected error occurred: {str(e)}", icon="❌")
                 logger.exception("Unexpected error during single calculation.")
 
-
-# --- Tab 2: Batch Upload Calculation ---
 with tab2:
     st.header("Batch Calculation via Excel Upload")
-
     with st.expander("Click here for detailed instructions on the Excel file format", expanded=False):
         st.markdown("**1. File Format:**")
         st.markdown("* Use standard Excel formats: `.xlsx` (recommended) or `.xls`.")
@@ -187,7 +187,44 @@ with tab2:
             "encounter errors like 'File is not a zip file', try re-saving "
             "explicitly as `.xlsx`."
         )
-        # ... (rest of the instructions as previously generated) ...
+        st.markdown("**2. Sheet:**")
+        st.markdown(
+            "* Place the data to be processed on the **first sheet** in the "
+            "workbook."
+        )
+        st.markdown("**3. Header Row:**")
+        st.markdown(
+            "* The **very first row** must contain the column headers."
+        )
+        st.markdown(
+            "* Headers must **exactly match** these names (case-sensitive):"
+        )
+        st.markdown(f"    * `{EXPECTED_COLUMNS['gross']}`")
+        st.markdown(f"    * `{EXPECTED_COLUMNS['dependents']}`")
+        st.markdown(f"    * `{EXPECTED_COLUMNS['region']}`")
+        st.markdown("**4. Data Types & Values:**")
+        st.markdown(
+            f"* `{EXPECTED_COLUMNS['gross']}` column: **Numeric** values only "
+            "(gross monthly income in VND). No currency symbols or commas. "
+            "Must be > 0."
+        )
+        st.markdown(
+            f"* `{EXPECTED_COLUMNS['dependents']}` column: **Integer** (whole "
+            "number) values only (number of registered dependents). Must be >= 0."
+        )
+        st.markdown(
+            f"* `{EXPECTED_COLUMNS['region']}` column: **Integer** values only: "
+            "`1`, `2`, `3`, or `4`."
+        )
+        st.markdown("**5. Data Rows:**")
+        st.markdown(
+            "* Each row after the header represents one calculation case."
+        )
+        st.markdown("**6. Simplicity:**")
+        st.markdown(
+            "* Avoid merged cells, complex formatting, images, or formulas "
+            "within the header and data rows."
+        )
         st.markdown("**Example File Structure:**")
         example_data = {
             EXPECTED_COLUMNS['gross']: [30000000, 20000000, 50000000],
@@ -195,7 +232,18 @@ with tab2:
             EXPECTED_COLUMNS['region']: [1, 1, 2]
         }
         st.table(pd.DataFrame(example_data))
-        st.markdown("**Troubleshooting Upload Errors:**") # ... (rest of instructions)
+        st.markdown("**Troubleshooting Upload Errors:**")
+        st.markdown(
+            "* `File is not a zip file`: Ensure you save as `.xlsx` properly."
+        )
+        st.markdown(
+            "* `Missing required columns`: Check header spelling and "
+            "capitalization exactly."
+        )
+        st.markdown(
+            "* Processing errors: Check data types in each cell match the "
+            "requirements."
+        )
 
     uploaded_file = st.file_uploader(
         "Choose an Excel file",
@@ -243,14 +291,12 @@ with tab2:
                         deps = int(row[actual_cols_map['dependents']])
                         reg = int(row[actual_cols_map['region']])
 
-                        # Pydantic will also validate, but good to have explicit checks for user feedback
                         if gross <= 0:
                             raise NegativeGrossIncomeError(gross_income=gross)
                         if deps < 0:
                             raise NegativeDependentsError(num_dependents=deps)
                         if reg not in [1, 2, 3, 4]:
                             raise InvalidRegionError(region_value=reg)
-
 
                         input_data = GrossNetInput(
                             gross_income=gross,
@@ -271,7 +317,7 @@ with tab2:
                         status = "Error"
                         error_msg = f"Row {index + 2}: {type(e).__name__} - {str(e)}"
                         logger.warning(f"Batch processing error: {error_msg}")
-                    except (TypeError, KeyError) as e: # Catch pandas/data access errors
+                    except (TypeError, KeyError) as e:
                         status = "Error"
                         error_msg = f"Row {index + 2}: Data Error - {type(e).__name__} - {str(e)}. Check column names and data types."
                         logger.warning(f"Batch processing data error: {error_msg}")
@@ -280,13 +326,14 @@ with tab2:
                         error_msg = f"Row {index + 2}: Unexpected Error - {str(e)}"
                         logger.exception(f"Unexpected error during batch processing row {index + 2}.")
 
-
                     result_data['CalculationStatus'] = status
                     result_data['ErrorMessage'] = error_msg.split(':')[-1].strip() if error_msg else ""
                     results_list.append(result_data)
 
                     progress_text = f"Processing row {index + 1}/{total_rows}"
-                    progress_bar.progress((index + 1) / total_rows, text=progress_text)
+                    progress_bar.progress(
+                        (index + 1) / total_rows, text=progress_text
+                    )
 
                 progress_bar.empty()
                 logger.info("Batch processing completed.")
@@ -339,5 +386,7 @@ insurance rates). Base salary (`Lương cơ sở`) for the BHXH/BHYT cap uses
 sources or a professional for financial decisions.
 """
 st.caption(textwrap.dedent(disclaimer))
+
+
 
 

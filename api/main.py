@@ -1,24 +1,33 @@
 # api/main.py
 
 import logging
-import os # For reading environment variables
+import os
+from dotenv import load_dotenv # Import python-dotenv
 from fastapi import FastAPI, status
-from fastapi.middleware.cors import CORSMiddleware # Optional
-from contextlib import asynccontextmanager # Import for lifespan events
+from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 
-# Corrected import: Use relative import for routers within the same 'api' package
 from .routers import gross_net
 
+# Load environment variables from .env file (for local development)
+# This should be one of the first things your application does.
+load_dotenv()
+
 # --- Basic Logging Configuration ---
+# Read LOG_LEVEL from environment, default to INFO
+LOG_LEVEL_FROM_ENV = os.getenv("LOG_LEVEL", "INFO").upper()
 logging.basicConfig(
-    level=os.getenv("LOG_LEVEL", "INFO").upper(),
+    level=LOG_LEVEL_FROM_ENV,
     format='%(asctime)s - %(name)s - %(levelname)s - %(module)s:%(funcName)s:%(lineno)d - %(message)s',
     datefmt='%Y-%m-%d %H:%M:%S',
 )
 logger = logging.getLogger(__name__)
+logger.info(f"Logging level set to: {LOG_LEVEL_FROM_ENV}")
 
-# --- Application Metadata & Environment Demonstration ---
+
+# --- Application Metadata & Environment ---
 API_ENVIRONMENT = os.getenv("API_ENV", "development")
+logger.info(f"FastAPI application starting in '{API_ENVIRONMENT}' environment.")
 
 DESCRIPTION = f"""
 API for calculating Vietnamese Net Income from Gross Income based on regulations
@@ -33,25 +42,18 @@ Uses data like Personal/Dependent Allowances, Regional Minimum Wages,
 Insurance Rates/Caps, and Progressive PIT brackets.
 """
 
-logger.info(f"FastAPI application starting in '{API_ENVIRONMENT}' environment.")
-
 # --- Lifespan Event Handler ---
 @asynccontextmanager
 async def lifespan(app_instance: FastAPI):
-    # Code to run on startup
-    logger.info("FastAPI application startup complete via lifespan event.")
-    # You could add database connections or other initializations here
+    logger.info("FastAPI application startup via lifespan event.")
     yield
-    # Code to run on shutdown
-    logger.info("FastAPI application shutting down via lifespan event.")
-    # Clean up resources here if needed
+    logger.info("FastAPI application shutdown via lifespan event.")
 
 # --- Initialize FastAPI app ---
-# Pass the lifespan manager to the FastAPI app
 app = FastAPI(
     title="Vietnam Gross Net Calculator API",
     description=DESCRIPTION,
-    version="0.1.3", # Increment version due to lifespan change
+    version="0.1.4",
     contact={
         "name": "Your Name / Project Team",
         "url": "http://yourexample.com/contact",
@@ -66,28 +68,28 @@ app = FastAPI(
         {"name": "Health", "description": "Endpoints for checking API status."},
         {"name": "Root", "description": "Basic API information."},
     ],
-    lifespan=lifespan # Register the lifespan context manager
+    lifespan=lifespan
 )
 
 # --- Optional: Configure CORS ---
-# origins = [
-#     "http://localhost",
-#     "http://localhost:8501",
-# ]
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=origins,
-#     allow_credentials=True,
-#     allow_methods=["*"],
-#     allow_headers=["*"],
-# )
-logger.info("CORS middleware configuration is currently commented out.")
+# origins_str = os.getenv("CORS_ALLOWED_ORIGINS", "") # Example: "http://localhost:8501,https://your-frontend.onrender.com"
+# if origins_str:
+#     origins = [origin.strip() for origin in origins_str.split(',')]
+#     app.add_middleware(
+#         CORSMiddleware,
+#         allow_origins=origins,
+#         allow_credentials=True,
+#         allow_methods=["*"],
+#         allow_headers=["*"],
+#     )
+#     logger.info(f"CORS middleware enabled for origins: {origins}")
+# else:
+#     logger.info("CORS middleware configuration is currently not set or commented out.")
 
-# --- Include API Routers ---
+
 app.include_router(gross_net.router, prefix="/calculate")
 logger.info("Included gross_net router with prefix /calculate.")
 
-# --- Root Endpoint ---
 @app.get("/", tags=["Root"], summary="API Welcome Message")
 async def read_root():
     logger.info("Root endpoint '/' accessed.")
@@ -97,21 +99,10 @@ async def read_root():
         "alternative_documentation": app.redoc_url
         }
 
-# --- Health Check Endpoint (Good Practice) ---
 @app.get("/health", status_code=status.HTTP_200_OK, tags=["Health"], summary="Health Check")
 async def health_check():
     logger.info("Health check endpoint '/health' accessed, returning status: ok.")
     return {"status": "healthy"}
 
-# --- DEPRECATED Application Startup/Shutdown Events (Optional) ---
-# @app.on_event("startup")
-# async def startup_event():
-#     logger.info("FastAPI application startup complete.")
-#     # You could add database connections or other initializations here
-
-# @app.on_event("shutdown")
-# async def shutdown_event():
-#     logger.info("FastAPI application shutting down.")
-#     # Clean up resources here if needed
 
 

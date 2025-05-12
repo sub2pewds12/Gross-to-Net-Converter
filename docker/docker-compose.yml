@@ -2,21 +2,34 @@ services:
   api:
     build:
       context: ..
-      dockerfile: docker/api.dockerfile # Changed to lowercase 'd'
+      dockerfile: docker/api.dockerfile
     ports:
       - "8000:8000"
     volumes:
       - ../core:/app/core
       - ../api:/app/api
+    env_file: # For local development, loads variables from .env file at project root
+      - ../.env # Path relative to docker-compose.yml
+    # Example of setting environment variables directly (Render does this via its UI)
+    # environment:
+    #   - API_ENV=development
+    #   - LOG_LEVEL=DEBUG
 
   frontend:
     build:
       context: ..
-      dockerfile: docker/frontend.dockerfile # Changed to lowercase 'd'
+      dockerfile: docker/frontend.dockerfile
     ports:
       - "8501:8501"
     volumes:
       - ../core:/app/core
       - ../frontend:/app/frontend
+    env_file:
+      - ../.env
+    # environment:
+    #   - API_ENV=development
+    #   - LOG_LEVEL=DEBUG
+    #   - API_URL=http://api:8000 # For container-to-container communication if frontend calls API
     depends_on:
       - api
+

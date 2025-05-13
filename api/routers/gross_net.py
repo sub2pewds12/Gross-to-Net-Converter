@@ -3,7 +3,7 @@
 import logging
 import pandas as pd
 import io
-from typing import List, Dict, Any
+from typing import Any # List and Dict are now imported as built-ins
 
 from fastapi import APIRouter, Body, HTTPException, status, UploadFile, File
 
@@ -99,7 +99,7 @@ async def api_calculate_gross_to_net_single(
         "Upload an Excel file (.xlsx, .xls) with columns for GrossIncome, Dependents, and Region. "
         "The API will process each row and return the calculated results along with original data."
     ),
-    response_model=List[Dict[str, Any]],
+    response_model=list[dict[str, Any]], # Changed List to list, Dict to dict
     tags=["Calculations"]
 )
 async def api_calculate_batch_excel(file: UploadFile = File(..., description="Excel file (.xlsx or .xls) for batch processing.")):
@@ -149,9 +149,13 @@ async def api_calculate_batch_excel(file: UploadFile = File(..., description="Ex
             deps = int(row_data[API_EXPECTED_COLUMNS['dependents']])
             reg = int(row_data[API_EXPECTED_COLUMNS['region']])
 
-            if gross <= 0: raise NegativeGrossIncomeError(gross_income=gross)
-            if deps < 0: raise NegativeDependentsError(num_dependents=deps)
-            if reg not in [1, 2, 3, 4]: raise InvalidRegionError(region_value=reg)
+            # Fixed E701 errors by moving raise to new line
+            if gross <= 0:
+                raise NegativeGrossIncomeError(gross_income=gross)
+            if deps < 0:
+                raise NegativeDependentsError(num_dependents=deps)
+            if reg not in [1, 2, 3, 4]:
+                raise InvalidRegionError(region_value=reg)
 
             input_data = GrossNetInput(gross_income=gross, num_dependents=deps, region=reg)
             result = calculate_gross_to_net(input_data)
@@ -182,3 +186,4 @@ async def api_calculate_batch_excel(file: UploadFile = File(..., description="Ex
 
     logger.info(f"Batch processing completed. Processed {len(processed_results)} rows.")
     return processed_results
+

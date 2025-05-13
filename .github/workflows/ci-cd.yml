@@ -85,10 +85,8 @@ jobs:
 
     steps:
       - name: Trigger Render API Deploy
-        # This condition checks if the secret exists and is not an empty string.
-        # The editor warning "Unrecognized named-value: 'secrets'" is likely a linter issue.
-        # This syntax is correct for GitHub Actions execution.
-        if: ${{ secrets.RENDER_API_DEPLOY_HOOK_URL }}
+        # Corrected: Ensure the entire expression accessing secrets is within ${{ }}
+        if: ${{ secrets.RENDER_API_DEPLOY_HOOK_URL != '' && secrets.RENDER_API_DEPLOY_HOOK_URL != null }}
         run: |
           echo "Triggering Render deployment for API service..."
           response_api=$(curl -s -X POST "${{ secrets.RENDER_API_DEPLOY_HOOK_URL }}")
@@ -100,10 +98,8 @@ jobs:
           echo "Render API deployment successfully triggered (or request accepted)."
 
       - name: Trigger Render Frontend Deploy
-        # This condition checks if the secret exists and is not an empty string.
-        # The editor warning "Unrecognized named-value: 'secrets'" is likely a linter issue.
-        # This syntax is correct for GitHub Actions execution.
-        if: ${{ secrets.RENDER_FRONTEND_DEPLOY_HOOK_URL }}
+        # Corrected: Ensure the entire expression accessing secrets is within ${{ }}
+        if: ${{ secrets.RENDER_FRONTEND_DEPLOY_HOOK_URL != '' && secrets.RENDER_FRONTEND_DEPLOY_HOOK_URL != null }}
         run: |
           echo "Triggering Render deployment for Frontend service..."
           response_frontend=$(curl -s -X POST "${{ secrets.RENDER_FRONTEND_DEPLOY_HOOK_URL }}")
@@ -113,6 +109,7 @@ jobs:
             exit 1
           fi
           echo "Render Frontend deployment successfully triggered (or request accepted)."
+
 
 
 

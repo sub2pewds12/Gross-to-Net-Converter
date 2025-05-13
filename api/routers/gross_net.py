@@ -3,7 +3,7 @@
 import logging
 import pandas as pd
 import io
-from typing import Any # List and Dict are now imported as built-ins
+from typing import Any  # List and Dict are now imported as built-ins
 
 from fastapi import APIRouter, Body, HTTPException, status, UploadFile, File
 
@@ -15,17 +15,18 @@ from core.exceptions import (
     InvalidInputDataError,
     NegativeGrossIncomeError,
     NegativeDependentsError,
-    MissingConfigurationError
+    MissingConfigurationError,
 )
 
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
 API_EXPECTED_COLUMNS = {
-    'gross': 'GrossIncome',
-    'dependents': 'Dependents',
-    'region': 'Region'
+    "gross": "GrossIncome",
+    "dependents": "Dependents",
+    "region": "Region",
 }
+
 
 @router.post(
     "/gross-to-net",
@@ -36,10 +37,10 @@ API_EXPECTED_COLUMNS = {
         "based on a single set of Gross Income, Number of Dependents, and Region "
         "for April 2025 regulations."
     ),
-    tags=["Calculations"]
+    tags=["Calculations"],
 )
 async def api_calculate_gross_to_net_single(
-    input_data: GrossNetInput = Body( # noqa: B008
+    input_data: GrossNetInput = Body(  # noqa: B008
         ...,
         examples={
             "Basic Case (Region 1, 1 Dependent)": {
@@ -48,49 +49,58 @@ async def api_calculate_gross_to_net_single(
                 "value": {"gross_income": 30000000, "num_dependents": 1, "region": 1},
             },
         },
-    )
+    ),
 ):
-    logger.info(f"Received request for /gross-to-net (single): {input_data.model_dump_json(exclude_none=True)}")
+    logger.info(
+        f"Received request for /gross-to-net (single): {input_data.model_dump_json(exclude_none=True)}"
+    )
     try:
         result = calculate_gross_to_net(input_data)
-        logger.info(f"Single calculation successful for input: {input_data.model_dump_json(exclude_none=True)}")
+        logger.info(
+            f"Single calculation successful for input: {input_data.model_dump_json(exclude_none=True)}"
+        )
         return result
-    except (InvalidRegionError, NegativeGrossIncomeError, NegativeDependentsError, InvalidInputDataError) as e:
+    except (
+        InvalidRegionError,
+        NegativeGrossIncomeError,
+        NegativeDependentsError,
+        InvalidInputDataError,
+    ) as e:
         logger.warning(
             f"Input validation error for /gross-to-net (single) "
             f"({type(e).__name__}): {str(e)} - Input: {input_data.model_dump_json(exclude_none=True)}"
         )
         raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e)
+            status_code=status.HTTP_400_BAD_REQUEST, detail=str(e)
         ) from e
     except MissingConfigurationError as e:
         logger.error(
             f"Configuration error during /gross-to-net (single) calculation: {str(e)} - Input: {input_data.model_dump_json(exclude_none=True)}",
-            exc_info=True
+            exc_info=True,
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Internal configuration error: {str(e)}"
+            detail=f"Internal configuration error: {str(e)}",
         ) from e
     except CoreCalculationError as e:
         logger.error(
             f"Core calculation error for /gross-to-net (single): {str(e)} - Input: {input_data.model_dump_json(exclude_none=True)}",
-            exc_info=True
+            exc_info=True,
         )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Calculation error: {str(e)}"
+            detail=f"Calculation error: {str(e)}",
         ) from e
     except Exception as e:
         logger.error(
             f"Unexpected error during /gross-to-net (single) calculation: {str(e)} - Input: {input_data.model_dump_json(exclude_none=True)}",
-            exc_info=True
+            exc_info=True,
         )
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="An unexpected internal error occurred while processing the calculation."
+            detail="An unexpected internal error occurred while processing the calculation.",
         ) from e
+
 
 @router.post(
     "/batch-excel-upload",
@@ -99,36 +109,48 @@ async def api_calculate_gross_to_net_single(
         "Upload an Excel file (.xlsx, .xls) with columns for GrossIncome, Dependents, and Region. "
         "The API will process each row and return the calculated results along with original data."
     ),
-    response_model=list[dict[str, Any]], # Changed List to list, Dict to dict
-    tags=["Calculations"]
+    response_model=list[dict[str, Any]],  # Changed List to list, Dict to dict
+    tags=["Calculations"],
 )
-async def api_calculate_batch_excel(file: UploadFile = File(..., description="Excel file (.xlsx or .xls) for batch processing.")):
-    logger.info(f"Received request for /batch-excel-upload. Filename: {file.filename}, Content-Type: {file.content_type}")
+async def api_calculate_batch_excel(
+    file: UploadFile = File(
+        ..., description="Excel file (.xlsx or .xls) for batch processing."
+    ),
+):
+    logger.info(
+        f"Received request for /batch-excel-upload. Filename: {file.filename}, Content-Type: {file.content_type}"
+    )
 
     if not (file.filename.endswith(".xlsx") or file.filename.endswith(".xls")):
         logger.warning(f"Invalid file type uploaded: {file.filename}")
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid file type. Please upload an .xlsx or .xls file."
+            detail="Invalid file type. Please upload an .xlsx or .xls file.",
         )
 
     try:
         contents = await file.read()
         excel_stream = io.BytesIO(contents)
-        engine = 'openpyxl' if file.filename.endswith(".xlsx") else None
+        engine = "openpyxl" if file.filename.endswith(".xlsx") else None
         df_input = pd.read_excel(excel_stream, engine=engine)
-        logger.info(f"Successfully read Excel file. Shape: {df_input.shape}. Columns: {df_input.columns.tolist()}")
+        logger.info(
+            f"Successfully read Excel file. Shape: {df_input.shape}. Columns: {df_input.columns.tolist()}"
+        )
 
     except Exception as e:
-        logger.error(f"Error reading Excel file '{file.filename}': {str(e)}", exc_info=True)
+        logger.error(
+            f"Error reading Excel file '{file.filename}': {str(e)}", exc_info=True
+        )
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Could not read or parse the Excel file. Ensure it is a valid .xlsx or .xls file. Error: {str(e)}"
+            detail=f"Could not read or parse the Excel file. Ensure it is a valid .xlsx or .xls file. Error: {str(e)}",
         )
     finally:
         await file.close()
 
-    missing_cols = [col for col in API_EXPECTED_COLUMNS.values() if col not in df_input.columns]
+    missing_cols = [
+        col for col in API_EXPECTED_COLUMNS.values() if col not in df_input.columns
+    ]
     if missing_cols:
         msg = f"Missing required columns in Excel file: {', '.join(missing_cols)}. Expected: {list(API_EXPECTED_COLUMNS.values())}"
         logger.warning(f"Batch upload validation error: {msg}")
@@ -145,9 +167,9 @@ async def api_calculate_batch_excel(file: UploadFile = File(..., description="Ex
         result_object_dict = None
 
         try:
-            gross = float(row_data[API_EXPECTED_COLUMNS['gross']])
-            deps = int(row_data[API_EXPECTED_COLUMNS['dependents']])
-            reg = int(row_data[API_EXPECTED_COLUMNS['region']])
+            gross = float(row_data[API_EXPECTED_COLUMNS["gross"]])
+            deps = int(row_data[API_EXPECTED_COLUMNS["dependents"]])
+            reg = int(row_data[API_EXPECTED_COLUMNS["region"]])
 
             # Fixed E701 errors by moving raise to new line
             if gross <= 0:
@@ -157,18 +179,31 @@ async def api_calculate_batch_excel(file: UploadFile = File(..., description="Ex
             if reg not in [1, 2, 3, 4]:
                 raise InvalidRegionError(region_value=reg)
 
-            input_data = GrossNetInput(gross_income=gross, num_dependents=deps, region=reg)
+            input_data = GrossNetInput(
+                gross_income=gross, num_dependents=deps, region=reg
+            )
             result = calculate_gross_to_net(input_data)
             result_object_dict = result.model_dump(exclude_none=True)
 
-        except (InvalidRegionError, NegativeGrossIncomeError, NegativeDependentsError, InvalidInputDataError, MissingConfigurationError, CoreCalculationError) as e:
+        except (
+            InvalidRegionError,
+            NegativeGrossIncomeError,
+            NegativeDependentsError,
+            InvalidInputDataError,
+            MissingConfigurationError,
+            CoreCalculationError,
+        ) as e:
             calculation_status = "Error"
             error_message = f"{type(e).__name__}: {str(e)}"
-            logger.warning(f"Error processing row {index + 1} from Excel: {error_message}")
+            logger.warning(
+                f"Error processing row {index + 1} from Excel: {error_message}"
+            )
         except (TypeError, KeyError, ValueError) as e:
             calculation_status = "Error"
             error_message = f"Data Error in row {index + 1}: {type(e).__name__} - {str(e)}. Check column names and data types."
-            logger.warning(f"Data error processing row {index + 1} from Excel: {error_message}")
+            logger.warning(
+                f"Data error processing row {index + 1} from Excel: {error_message}"
+            )
         except Exception as e:
             calculation_status = "Error"
             error_message = f"Unexpected Error in row {index + 1}: {str(e)}"
@@ -177,7 +212,7 @@ async def api_calculate_batch_excel(file: UploadFile = File(..., description="Ex
         combined_row_result = {
             **original_row_dict,
             "CalculationStatus": calculation_status,
-            "ErrorMessage": error_message
+            "ErrorMessage": error_message,
         }
         if result_object_dict:
             combined_row_result.update(result_object_dict)
@@ -186,4 +221,3 @@ async def api_calculate_batch_excel(file: UploadFile = File(..., description="Ex
 
     logger.info(f"Batch processing completed. Processed {len(processed_results)} rows.")
     return processed_results
-

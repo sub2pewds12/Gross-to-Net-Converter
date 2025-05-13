@@ -80,16 +80,22 @@ jobs:
   deploy_to_render:
     name: Deploy to Render
     runs-on: ubuntu-latest
-    needs: build_and_push # Only run if images were successfully built and pushed
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main' # Only on push to main
+    needs: build_and_push
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    # Define job-level environment variables from secrets
+    # These will be accessible as env.VAR_NAME in the steps below
+    env:
+      RENDER_API_HOOK_URL_ENV: ${{ secrets.RENDER_API_DEPLOY_HOOK_URL }}
+      RENDER_FRONTEND_HOOK_URL_ENV: ${{ secrets.RENDER_FRONTEND_DEPLOY_HOOK_URL }}
 
     steps:
       - name: Trigger Render API Deploy
-        # Corrected: Ensure the entire expression accessing secrets is within ${{ }}
-        if: ${{ secrets.RENDER_API_DEPLOY_HOOK_URL != '' && secrets.RENDER_API_DEPLOY_HOOK_URL != null }}
+        # Check the environment variable. If the secret wasn't set, the env var will be empty.
+        if: env.RENDER_API_HOOK_URL_ENV != ''
         run: |
           echo "Triggering Render deployment for API service..."
-          response_api=$(curl -s -X POST "${{ secrets.RENDER_API_DEPLOY_HOOK_URL }}")
+          # Use the environment variable in the curl command
+          response_api=$(curl -s -X POST "${{ env.RENDER_API_HOOK_URL_ENV }}")
           echo "Render API deploy hook response: $response_api"
           if [ $? -ne 0 ]; then
             echo "curl command failed for API deploy hook!"
@@ -98,17 +104,19 @@ jobs:
           echo "Render API deployment successfully triggered (or request accepted)."
 
       - name: Trigger Render Frontend Deploy
-        # Corrected: Ensure the entire expression accessing secrets is within ${{ }}
-        if: ${{ secrets.RENDER_FRONTEND_DEPLOY_HOOK_URL != '' && secrets.RENDER_FRONTEND_DEPLOY_HOOK_URL != null }}
+        # Check the environment variable
+        if: env.RENDER_FRONTEND_HOOK_URL_ENV != ''
         run: |
           echo "Triggering Render deployment for Frontend service..."
-          response_frontend=$(curl -s -X POST "${{ secrets.RENDER_FRONTEND_DEPLOY_HOOK_URL }}")
+          # Use the environment variable in the curl command
+          response_frontend=$(curl -s -X POST "${{ env.RENDER_FRONTEND_HOOK_URL_ENV }}")
           echo "Render Frontend deploy hook response: $response_frontend"
           if [ $? -ne 0 ]; then
             echo "curl command failed for Frontend deploy hook!"
             exit 1
           fi
           echo "Render Frontend deployment successfully triggered (or request accepted)."
+
 
 
 

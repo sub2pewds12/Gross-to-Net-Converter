@@ -1,9 +1,12 @@
+# .github/workflows/ci-cd.yml
+
 name: CI/CD for VN Gross Net Calculator
+
 on:
   push:
-    branches: [ "main" ] 
+    branches: [ "main" ]
   pull_request:
-    branches: [ "main" ] 
+    branches: [ "main" ]
 
 jobs:
   lint_and_test:
@@ -22,13 +25,13 @@ jobs:
       - name: Cache pip dependencies
         uses: actions/cache@v4
         with:
-          path: ~/.cache/pip 
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/pyproject.toml') }} 
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/pyproject.toml') }}
           restore-keys: |
             ${{ runner.os }}-pip-
 
       - name: Install dependencies
-        run: pip install .[test,dev] 
+        run: pip install .[test,dev]
 
       - name: Lint with Ruff
         run: ruff check .
@@ -42,8 +45,7 @@ jobs:
   build_and_push:
     name: Build & Push Docker Images
     runs-on: ubuntu-latest
-    needs: lint_and_test 
-
+    needs: lint_and_test
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     steps:
@@ -57,20 +59,60 @@ jobs:
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}    
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Build and push API image
         uses: docker/build-push-action@v6
         with:
-          context: . 
-          file: ./docker/api.Dockerfile 
-          push: true 
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/vn-gross-net-api:latest 
+          context: .
+          file: ./docker/api.Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/vn-gross-net-api:latest
 
       - name: Build and push Frontend image
         uses: docker/build-push-action@v6
         with:
-          context: . 
-          file: ./docker/frontend.Dockerfile 
-          push: true 
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/vn-gross-net-frontend:latest 
+          context: .
+          file: ./docker/frontend.Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/vn-gross-net-frontend:latest
+
+  deploy_to_render:
+    name: Deploy to Render
+    runs-on: ubuntu-latest
+    needs: build_and_push # Only run if images were successfully built and pushed
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' # Only on push to main
+
+    steps:
+      - name: Trigger Render API Deploy
+        # This condition checks if the secret exists and is not an empty string.
+        # The editor warning "Unrecognized named-value: 'secrets'" is likely a linter issue.
+        # This syntax is correct for GitHub Actions execution.
+        if: ${{ secrets.RENDER_API_DEPLOY_HOOK_URL }}
+        run: |
+          echo "Triggering Render deployment for API service..."
+          response_api=$(curl -s -X POST "${{ secrets.RENDER_API_DEPLOY_HOOK_URL }}")
+          echo "Render API deploy hook response: $response_api"
+          if [ $? -ne 0 ]; then
+            echo "curl command failed for API deploy hook!"
+            exit 1
+          fi
+          echo "Render API deployment successfully triggered (or request accepted)."
+
+      - name: Trigger Render Frontend Deploy
+        # This condition checks if the secret exists and is not an empty string.
+        # The editor warning "Unrecognized named-value: 'secrets'" is likely a linter issue.
+        # This syntax is correct for GitHub Actions execution.
+        if: ${{ secrets.RENDER_FRONTEND_DEPLOY_HOOK_URL }}
+        run: |
+          echo "Triggering Render deployment for Frontend service..."
+          response_frontend=$(curl -s -X POST "${{ secrets.RENDER_FRONTEND_DEPLOY_HOOK_URL }}")
+          echo "Render Frontend deploy hook response: $response_frontend"
+          if [ $? -ne 0 ]; then
+            echo "curl command failed for Frontend deploy hook!"
+            exit 1
+          fi
+          echo "Render Frontend deployment successfully triggered (or request accepted)."
+
+
+

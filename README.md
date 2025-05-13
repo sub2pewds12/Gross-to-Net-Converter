@@ -273,7 +273,6 @@ vn_gross_net_calculator/
 ├── pyproject.toml  # Project configuration and dependencies (PEP 621)
 ├── README.md       # This file
 ├── requirements.txt # Alternative/generated dependency list
-└── TROUBLESHOOTING.md # Debugging and troubleshooting guide
 ```
 
 ---

@@ -14,10 +14,7 @@ import requests  # For making API calls
 load_dotenv()
 
 # Local application imports
-from core.models import (
-    GrossNetInput,
-    SavedCalculationCreate,
-)  # Import SavedCalculationCreate
+from core.models import GrossNetInput, SavedCalculationCreate  # Corrected module from "odels" to "models"
 from core.calculator import calculate_gross_to_net
 from core.constants import REGIONAL_MINIMUM_WAGES
 from core.exceptions import (

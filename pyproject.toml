@@ -23,6 +23,7 @@ dependencies = [
     "openpyxl >= 3.0.0",
     "python-dotenv >= 0.20.0",
     "python-multipart >= 0.0.5", # Ensures FastAPI can handle file uploads
+    "sqlalchemy >= 2.0.0",  # Added SQLAlchemy dependency
 ]
 
 [project.optional-dependencies]
@@ -57,6 +58,7 @@ testpaths = [
     "tests",
 ]
 pythonpath = "."
+
 
 
 

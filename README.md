@@ -1,4 +1,3 @@
-
 # Vietnam Gross Net Income Calculator (vn_gross_net_calculator)
 
 **Date:** Tuesday, May 13, 2025  
@@ -287,5 +286,14 @@ Contributions are welcome! Please feel free to submit a Pull Request.
 
 This project is licensed under the MIT License. See the [LICENSE](https://www.google.com/search?q=LICENSE) file for details.
 
+## Database Configuration
+
+This project now uses a single PostgreSQL database container.  
+Ensure that the environment variable is set accordingly. For example, the connection string should be:
+
+```bash
+postgresql://user:password@db:5432/dbname
 ```
+
+Make sure to update your local `.env` file (or `.env.example`) with the above `DATABASE_URL` value.
 

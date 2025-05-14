@@ -1,58 +1,38 @@
+version: '3.8'
 services:
-  db:
-    image: postgres:15-alpine
-    container_name: vn_postgres_db
-    volumes:
-      - postgres_data:/var/lib/postgresql/data/
-    ports:
-      - "5433:5432"
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres_user}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres_password}
-      POSTGRES_DB: ${POSTGRES_DB:-app_db}
-    healthcheck: # Added healthcheck for PostgreSQL
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres_user} -d ${POSTGRES_DB:-app_db}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s # Give it some time to start up before first healthcheck
-    restart: unless-stopped
-
   api:
     build:
       context: ..
-      dockerfile: docker/api.dockerfile
+      dockerfile: api.Dockerfile
     ports:
       - "8000:8000"
-    volumes:
-      - ../core:/app/core
-      - ../api:/app/api
-    env_file:
-      - ../.env
     environment:
-      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres_user}:${POSTGRES_PASSWORD:-postgres_password}@db:5432/${POSTGRES_DB:-app_db}
+      - DATABASE_URL=postgresql://user:password@db:5432/dbname  # Updated to point to the single database service
     depends_on:
-      db: # Modified depends_on
-        condition: service_healthy # Wait for the db service to be healthy
+      - db
     restart: unless-stopped
 
   frontend:
     build:
       context: ..
-      dockerfile: docker/frontend.dockerfile
+      dockerfile: frontend.Dockerfile
     ports:
       - "8501:8501"
-    volumes:
-      - ../core:/app/core
-      - ../frontend:/app/frontend
-    env_file:
-      - ../.env
+    environment:
+      - API_URL=http://api:8000
     depends_on:
-      api: # Frontend depends on API
-        condition: service_started # Or service_healthy if API had a healthcheck
+      - api
     restart: unless-stopped
 
-volumes:
-  postgres_data:
+  # Single database service replacing all duplicate DB microservices
+  db:
+    image: postgres:13
+    restart: always
+    environment:
+      POSTGRES_DB: dbname
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
 
 

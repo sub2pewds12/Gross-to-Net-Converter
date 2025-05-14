@@ -5,8 +5,10 @@ services:
       dockerfile: api.dockerfile
     ports:
       - "8000:8000"
+    networks:
+      - app_net
     environment:
-      - DATABASE_URL=postgresql://user:password@db:5432/dbname  # Updated to point to the single database service
+      - DATABASE_URL=postgresql://postgres_user:postgres_password@db:5432/app_db
     depends_on:
       - db
     restart: unless-stopped
@@ -17,6 +19,8 @@ services:
       dockerfile: frontend.dockerfile
     ports:
       - "8501:8501"
+    networks:
+      - app_net
     environment:
       - API_URL=http://api:8000
     depends_on:
@@ -33,5 +37,11 @@ services:
       POSTGRES_PASSWORD: password
     ports:
       - "5432:5432"
+    networks:
+      - app_net
+
+networks:
+  app_net:
+    driver: bridge
 
 

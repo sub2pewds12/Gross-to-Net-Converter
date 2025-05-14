@@ -1,4 +1,23 @@
 services:
+  db:
+    image: postgres:15-alpine
+    container_name: vn_postgres_db
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres_password}
+      POSTGRES_DB: ${POSTGRES_DB:-app_db}
+    healthcheck: # Added healthcheck for PostgreSQL
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres_user} -d ${POSTGRES_DB:-app_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s # Give it some time to start up before first healthcheck
+    restart: unless-stopped
+
   api:
     build:
       context: ..
@@ -8,12 +27,14 @@ services:
     volumes:
       - ../core:/app/core
       - ../api:/app/api
-    env_file: # For local development, loads variables from .env file at project root
-      - ../.env # Path relative to docker-compose.yml
-    # Example of setting environment variables directly (Render does this via its UI)
-    # environment:
-    #   - API_ENV=development
-    #   - LOG_LEVEL=DEBUG
+    env_file:
+      - ../.env
+    environment:
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres_user}:${POSTGRES_PASSWORD:-postgres_password}@db:5432/${POSTGRES_DB:-app_db}
+    depends_on:
+      db: # Modified depends_on
+        condition: service_healthy # Wait for the db service to be healthy
+    restart: unless-stopped
 
   frontend:
     build:
@@ -26,10 +47,12 @@ services:
       - ../frontend:/app/frontend
     env_file:
       - ../.env
-    # environment:
-    #   - API_ENV=development
-    #   - LOG_LEVEL=DEBUG
-    #   - API_URL=http://api:8000 # For container-to-container communication if frontend calls API
     depends_on:
-      - api
+      api: # Frontend depends on API
+        condition: service_started # Or service_healthy if API had a healthcheck
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+
 

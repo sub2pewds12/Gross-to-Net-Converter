@@ -5,21 +5,27 @@
 # Import key components from submodules to make them
 # directly accessible at the package level.
 from .calculator import calculate_gross_to_net
-from .models import GrossNetInput, GrossNetResult, InsuranceBreakdown
-from . import constants
-
-# Import custom exceptions to make them available at the package level
-from .exceptions import (
-    CoreCalculationError,
-    InvalidRegionError,
-    InvalidInputDataError,
-    CalculationLogicError,
-    NegativeGrossIncomeError,
-    NegativeDependentsError,
-    InsuranceCalculationError,
-    PITCalculationError,
-    MissingConfigurationError,
+from .models import (
+    GrossNetInput,
+    GrossNetResult,
+    InsuranceBreakdown,
+    SavedCalculationCreate,
+    SavedCalculationUpdate,
+    SavedCalculationResponse,
+    SavedCalculationListResponse,
+    SavedCalculationDB # SQLAlchemy model
 )
+from . import constants
+from .exceptions import (
+    CoreCalculationError, InvalidRegionError, InvalidInputDataError,
+    CalculationLogicError, NegativeGrossIncomeError, NegativeDependentsError,
+    InsuranceCalculationError, PITCalculationError, MissingConfigurationError
+)
+from .database import Base, engine, SessionLocal, get_db, create_db_and_tables
+
+# Explicitly import the crud_saved_calculations module to make it available
+# when 'from core import crud_saved_calculations' is used.
+from . import crud_saved_calculations
 
 # Define what gets imported when someone does 'from core import *'
 # (Though wildcard imports are generally discouraged)
@@ -28,6 +34,11 @@ __all__ = [
     "GrossNetInput",
     "GrossNetResult",
     "InsuranceBreakdown",
+    "SavedCalculationCreate",
+    "SavedCalculationUpdate",
+    "SavedCalculationResponse",
+    "SavedCalculationListResponse",
+    "SavedCalculationDB",
     "constants",
     "CoreCalculationError",
     "InvalidRegionError",
@@ -38,7 +49,13 @@ __all__ = [
     "InsuranceCalculationError",
     "PITCalculationError",
     "MissingConfigurationError",
+    "Base",
+    "engine",
+    "SessionLocal",
+    "get_db",
+    "create_db_and_tables",
+    "crud_saved_calculations", # Add the module to __all__
 ]
 
-# You could also define a package-level version here if desired
-# __version__ = "0.1.1" # Example version bump
+# __version__ = "0.3.0" # Example version bump
+

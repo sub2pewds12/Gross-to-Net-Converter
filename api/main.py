@@ -4,15 +4,16 @@ import logging
 import os
 from dotenv import load_dotenv
 from fastapi import FastAPI, status
+
 # from fastapi.middleware.cors import CORSMiddleware # Keep commented if not used
 from contextlib import asynccontextmanager
 
 # Import routers
 from .routers import gross_net
-from .routers import saved_calculations_router # <-- IMPORT NEW ROUTER
+from .routers import saved_calculations_router  # <-- IMPORT NEW ROUTER
 
 # Import database utilities from core
-from core import database # For create_db_and_tables
+from core import database  # For create_db_and_tables
 
 # Load environment variables from .env file
 load_dotenv()
@@ -21,8 +22,8 @@ load_dotenv()
 LOG_LEVEL_FROM_ENV = os.getenv("LOG_LEVEL", "INFO").upper()
 logging.basicConfig(
     level=LOG_LEVEL_FROM_ENV,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(module)s:%(funcName)s:%(lineno)d - %(message)s',
-    datefmt='%Y-%m-%d %H:%M:%S',
+    format="%(asctime)s - %(name)s - %(levelname)s - %(module)s:%(funcName)s:%(lineno)d - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
 )
 logger = logging.getLogger(__name__)
 logger.info(f"Logging level set to: {LOG_LEVEL_FROM_ENV}")
@@ -43,6 +44,7 @@ Provides endpoints for:
 * **Saved Calculations CRUD**: under `/saved-calculations`
 """
 
+
 # --- Lifespan Event Handler ---
 @asynccontextmanager
 async def lifespan(app_instance: FastAPI):
@@ -61,11 +63,12 @@ async def lifespan(app_instance: FastAPI):
     # Code to run on shutdown
     logger.info("FastAPI application shutting down via lifespan event.")
 
+
 # --- Initialize FastAPI app ---
 app = FastAPI(
     title="Vietnam Gross Net Calculator API",
     description=DESCRIPTION,
-    version="0.3.0", # Version bump for CRUD
+    version="0.3.0",  # Version bump for CRUD
     contact={
         "name": "Your Name / Project Team",
         "url": "http://yourexample.com/contact",
@@ -76,12 +79,18 @@ app = FastAPI(
         "url": "https://opensource.org/licenses/MIT",
     },
     openapi_tags=[
-        {"name": "Calculations", "description": "Endpoints related to income calculations."},
-        {"name": "Saved Calculations", "description": "Endpoints for managing saved calculation records."},
+        {
+            "name": "Calculations",
+            "description": "Endpoints related to income calculations.",
+        },
+        {
+            "name": "Saved Calculations",
+            "description": "Endpoints for managing saved calculation records.",
+        },
         {"name": "Health", "description": "Endpoints for checking API status."},
         {"name": "Root", "description": "Basic API information."},
     ],
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 # --- Optional: Configure CORS ---
@@ -90,8 +99,11 @@ logger.info("CORS middleware configuration is currently commented out.")
 
 # --- Include API Routers ---
 app.include_router(gross_net.router, prefix="/calculate", tags=["Calculations"])
-app.include_router(saved_calculations_router.router) # Prefix is defined in the router itself
+app.include_router(
+    saved_calculations_router.router
+)  # Prefix is defined in the router itself
 logger.info("Included gross_net and saved_calculations routers.")
+
 
 # --- Root Endpoint ---
 @app.get("/", tags=["Root"], summary="API Welcome Message")
@@ -100,13 +112,14 @@ async def read_root():
     return {
         "message": "Welcome to the VN Gross Net Calculator API!",
         "documentation": app.docs_url,
-        "alternative_documentation": app.redoc_url
-        }
+        "alternative_documentation": app.redoc_url,
+    }
+
 
 # --- Health Check Endpoint ---
-@app.get("/health", status_code=status.HTTP_200_OK, tags=["Health"], summary="Health Check")
+@app.get(
+    "/health", status_code=status.HTTP_200_OK, tags=["Health"], summary="Health Check"
+)
 async def health_check():
     logger.info("Health check endpoint '/health' accessed, returning status: ok.")
     return {"status": "healthy"}
-
-

@@ -22,7 +22,9 @@ load_dotenv()
 # also set as an environment variable.
 # The default value here is more of a placeholder or for very basic local testing
 # if no environment variable is set.
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://user:password@localhost:5432/appdb")
+DATABASE_URL = os.getenv(
+    "DATABASE_URL", "postgresql://user:password@localhost:5432/appdb"
+)
 
 if DATABASE_URL.startswith("postgresql://user:password@localhost"):
     logger.warning(
@@ -30,7 +32,9 @@ if DATABASE_URL.startswith("postgresql://user:password@localhost"):
         "Ensure DATABASE_URL environment variable is set correctly for Docker Compose or Render."
     )
 else:
-    logger.info(f"Database URL configured: {DATABASE_URL.split('@')[1] if '@' in DATABASE_URL else 'URL configured (details masked)'}")
+    logger.info(
+        f"Database URL configured: {DATABASE_URL.split('@')[1] if '@' in DATABASE_URL else 'URL configured (details masked)'}"
+    )
 
 
 # Create SQLAlchemy engine
@@ -55,6 +59,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 # All your DB models (like SavedCalculationDB) will inherit from this.
 Base = declarative_base()
 
+
 # --- Dependency for FastAPI to get DB session ---
 def get_db():
     """
@@ -67,6 +72,7 @@ def get_db():
     finally:
         db.close()
 
+
 # --- Function to create database tables ---
 def create_db_and_tables():
     """
@@ -78,10 +84,14 @@ def create_db_and_tables():
     this function might not be used directly for table creation after the initial setup.
     Alembic would handle schema changes.
     """
-    logger.info(f"Attempting to create database tables for engine: {engine.url.render_as_string(hide_password=True)}")
+    logger.info(
+        f"Attempting to create database tables for engine: {engine.url.render_as_string(hide_password=True)}"
+    )
     try:
         Base.metadata.create_all(bind=engine)
-        logger.info("Database tables checked/created successfully (if they didn't already exist).")
+        logger.info(
+            "Database tables checked/created successfully (if they didn't already exist)."
+        )
     except Exception as e:
         logger.error(f"Error creating database tables: {str(e)}", exc_info=True)
         # In a real application, you might want to raise this or handle it more gracefully

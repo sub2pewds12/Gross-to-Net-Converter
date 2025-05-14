@@ -10,11 +10,7 @@ from dotenv import load_dotenv
 import textwrap
 import requests  # For making API calls
 
-# Load environment variables from .env file (for local development)
-load_dotenv()
-
-# Local application imports
-from core.models import GrossNetInput, SavedCalculationCreate  # Corrected module from "odels" to "models"
+from core.models import GrossNetInput, SavedCalculationCreate  # corrected import from "odels" to "models"
 from core.calculator import calculate_gross_to_net
 from core.constants import REGIONAL_MINIMUM_WAGES
 from core.exceptions import (
@@ -25,6 +21,9 @@ from core.exceptions import (
     NegativeDependentsError,
     MissingConfigurationError,
 )
+
+# Load environment variables from .env file (for local development)
+load_dotenv()
 
 # --- Basic Logging Configuration ---
 LOG_LEVEL_FROM_ENV = os.getenv("LOG_LEVEL", "INFO").upper()

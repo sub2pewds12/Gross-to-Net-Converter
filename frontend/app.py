@@ -547,6 +547,20 @@ with tab2:
                         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                         use_container_width=True,
                     )
+
+                # --- New: Save feature for batch calculations ---
+                if st.button("Save Batch Calculations"):
+                    api_url = os.getenv("API_URL", "http://api:8000")
+                    endpoint = f"{api_url}/save-batch"
+                    payload = {"calculations": results_list}
+                    try:
+                        response = requests.post(endpoint, json=payload)
+                        if response.ok:
+                            st.success("Batch calculations saved successfully!")
+                        else:
+                            st.error(f"Error saving calculations: {response.text}")
+                    except Exception as e:
+                        st.error(f"Error saving calculations: {e}")
         except Exception as e:
             st.error(f"Error reading or processing Excel file: {str(e)}", icon="❌")
             logger.exception(

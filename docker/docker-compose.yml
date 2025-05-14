@@ -6,7 +6,9 @@ services:
     ports:
       - "8000:8000"
     networks:
-      - app_net
+      app_net:
+        aliases:
+          - api   # Add alias so the hostname 'api' resolves inside Docker
     environment:
       - DATABASE_URL=postgresql://postgres_user:postgres_password@db:5432/app_db
     depends_on:
@@ -22,7 +24,7 @@ services:
     networks:
       - app_net
     environment:
-      - API_URL=http://api:8000
+      - API_URL=http://api:8000  # Ensure this uses the Docker alias
     depends_on:
       - api
     restart: unless-stopped

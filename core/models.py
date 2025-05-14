@@ -1,7 +1,7 @@
 # core/models.py
 
 from pydantic import BaseModel, Field
-from typing import Optional, List  # Keep List for Pydantic schemas
+from typing import Optional  # Remove List import
 from datetime import datetime
 
 from sqlalchemy import Column, Integer, String, Float, DateTime
@@ -131,7 +131,7 @@ class SavedCalculationResponse(BaseModel):
 
 # Schema for a list of saved calculations in API responses
 class SavedCalculationListResponse(BaseModel):
-    items: List[SavedCalculationResponse]
+    items: list[SavedCalculationResponse]
     total: int
     skip: Optional[int] = None
     limit: Optional[int] = None

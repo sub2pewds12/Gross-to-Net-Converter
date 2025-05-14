@@ -2,7 +2,7 @@
 
 import logging
 from sqlalchemy.orm import Session
-from typing import List, Optional
+from typing import Optional  # Remove List import
 
 # Import your SQLAlchemy model and Pydantic schemas
 from .models import SavedCalculationDB, SavedCalculationCreate, SavedCalculationUpdate
@@ -32,7 +32,7 @@ def get_saved_calculation(
 
 def get_all_saved_calculations(
     db: Session, skip: int = 0, limit: int = 100
-) -> List[SavedCalculationDB]:
+) -> list[SavedCalculationDB]:  # Use list instead of List
     """
     Retrieves a list of saved calculations from the database with pagination.
     """

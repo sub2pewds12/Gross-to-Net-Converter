@@ -1,7 +1,7 @@
 # api/routers/saved_calculations_router.py
 
 import logging
-from typing import List, Optional, Any, Dict  # Ensure Dict and Any are imported if used
+from typing import Optional, Any
 
 from fastapi import APIRouter, Depends, HTTPException, status, Query, File, UploadFile
 from sqlalchemy.orm import Session

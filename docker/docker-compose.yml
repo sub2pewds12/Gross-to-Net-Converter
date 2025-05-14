@@ -2,7 +2,7 @@ services:
   api:
     build:
       context: ..
-      dockerfile: api.Dockerfile
+      dockerfile: api.dockerfile
     ports:
       - "8000:8000"
     environment:
@@ -14,7 +14,7 @@ services:
   frontend:
     build:
       context: ..
-      dockerfile: frontend.Dockerfile
+      dockerfile: frontend.dockerfile
     ports:
       - "8501:8501"
     environment:

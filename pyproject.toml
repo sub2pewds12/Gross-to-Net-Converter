@@ -24,6 +24,8 @@ dependencies = [
     "python-dotenv >= 0.20.0",
     "python-multipart >= 0.0.5", # Ensures FastAPI can handle file uploads
     "sqlalchemy >= 2.0.0",  # Added SQLAlchemy dependency
+    "psycopg2-binary = ^2.9.0"
+
 ]
 
 [project.optional-dependencies]

@@ -62,7 +62,7 @@ APP_ENVIRONMENT = os.getenv("API_ENV", "development")
 logger.info(f"Streamlit application starting in '{APP_ENVIRONMENT}' environment.")
 
 # --- API URL ---
-API_BASE_URL = os.getenv("API_URL", "http://localhost:8000") # Default for local API
+API_BASE_URL = os.getenv("API_URL", "http://localhost:8000")  # Default for local API
 logger.info(f"API_BASE_URL for frontend calls: {API_BASE_URL}")
 
 

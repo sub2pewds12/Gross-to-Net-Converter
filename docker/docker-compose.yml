@@ -1,4 +1,3 @@
-
 services:
   api:
     build:
@@ -9,9 +8,9 @@ services:
     networks:
       app_net:
         aliases:
-          - api   # Ensures the hostname 'api' resolves inside Docker
+          - api   # Ensures internal DNS resolution for "api"
     environment:
-      - DATABASE_URL=postgresql://postgres:your_password@db:5432/your_db  # Adjusted to match DB settings
+      - DATABASE_URL=postgresql://postgres:your_password@db:5432/your_db
     depends_on:
       - db
     restart: unless-stopped
@@ -23,14 +22,13 @@ services:
     ports:
       - "8501:8501"
     networks:
-      - app_net
+      - app_net      # Ensure this service is on app_net
     environment:
-      - API_URL=http://api:8000  # Uses the Docker alias
+      - API_URL=http://api:8000    # Use Docker alias 'api'
     depends_on:
       - api
     restart: unless-stopped
 
-  # Single database service using a custom Dockerfile
   db:
     build:
       context: ..
@@ -55,8 +53,6 @@ services:
 networks:
   app_net:
     driver: bridge
-volumes: # Add this top-level key
-  postgres_data: {}
 
 
 

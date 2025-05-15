@@ -3,7 +3,7 @@
 import logging
 import pandas as pd
 import io
-from typing import Any, list  # Added List for type annotations
+from typing import Any
 import math  # Added to handle NaN values
 
 from fastapi import APIRouter, Body, HTTPException, status, UploadFile, File

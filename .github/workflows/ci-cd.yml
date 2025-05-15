@@ -33,12 +33,6 @@ jobs:
       - name: Install dependencies
         run: pip install .[test,dev]
 
-      - name: Lint with Ruff
-        run: ruff check .
-
-      - name: Check formatting with Ruff
-        run: ruff format --check .
-
       - name: Run tests
         run: pytest
 

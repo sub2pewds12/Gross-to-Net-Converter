@@ -3,7 +3,7 @@
 import logging
 import pandas as pd
 import io
-from typing import Any, List  # Added List for type annotations
+from typing import Any, list  # Added List for type annotations
 import math  # Added to handle NaN values
 
 from fastapi import APIRouter, Body, HTTPException, status, UploadFile, File
@@ -280,7 +280,7 @@ async def save_calculation(calculation: GrossNetInput):  # Using GrossNetInput a
 
 
 @router.post("/save-batch")
-async def save_batch_calculations(calculations: List[GrossNetInput]):
+async def save_batch_calculations(calculations: list[GrossNetInput]):
     try:
         saved_list = []
         for calc in calculations:

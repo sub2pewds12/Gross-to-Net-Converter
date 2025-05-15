@@ -9,10 +9,10 @@ def wait_for_db(host, port=5432):
         try:
             # Use pg_isready to check the database status
             result = subprocess.run(
-                ["pg_isready", "-h", host, "-p", str(port)],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-            )
+            ["pg_isready", "-h", host, "-p", str(port)],
+            capture_output=True, # Replace stdout and stderr PIPE
+            text=True # Add this if you expect string output, good practice
+            )           
             if result.returncode == 0:
                 print("Database is up - executing command", file=sys.stderr)
                 break

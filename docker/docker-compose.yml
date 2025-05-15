@@ -1,16 +1,17 @@
+
 services:
   api:
     build:
       context: ..
-      dockerfile: api.dockerfile
+      dockerfile: docker/api.Dockerfile
     ports:
       - "8000:8000"
     networks:
       app_net:
         aliases:
-          - api   # Add alias so the hostname 'api' resolves inside Docker
+          - api   # Ensures the hostname 'api' resolves inside Docker
     environment:
-      - DATABASE_URL=postgresql://postgres_user:postgres_password@db:5432/app_db
+      - DATABASE_URL=postgresql://postgres:your_password@db:5432/your_db  # Adjusted to match DB settings
     depends_on:
       - db
     restart: unless-stopped
@@ -18,32 +19,44 @@ services:
   frontend:
     build:
       context: ..
-      dockerfile: frontend.dockerfile
+      dockerfile: docker/frontend.Dockerfile
     ports:
       - "8501:8501"
     networks:
       - app_net
     environment:
-      - API_URL=http://api:8000  # Ensure this uses the Docker alias
+      - API_URL=http://api:8000  # Uses the Docker alias
     depends_on:
       - api
     restart: unless-stopped
 
-  # Single database service replacing all duplicate DB microservices
+  # Single database service using a custom Dockerfile
   db:
-    image: postgres:13
-    restart: always
+    build:
+      context: ..
+      dockerfile: docker/db.Dockerfile
     environment:
-      POSTGRES_DB: dbname
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: password
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: your_password
+      POSTGRES_DB: your_db
     ports:
       - "5432:5432"
     networks:
       - app_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - ./data:/var/lib/postgresql/data
+    restart: unless-stopped
 
 networks:
   app_net:
     driver: bridge
+volumes: # Add this top-level key
+  postgres_data: {}
+
 
 

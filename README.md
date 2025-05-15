@@ -84,6 +84,12 @@ pip install .[test,dev]
 
 ### Option 1: Using Docker Compose (For Development with Local Code)
 
+Before testing any new feature, rebuild your containers locally by running:
+```bash
+docker compose -f docker/docker-compose.yml up --build -d
+```
+This ensures that all changes are picked up before you test the application.
+
 This method runs both the API and the Web UI together in isolated containers using your **local source code** (changes to your code are reflected due to volume mounts). It's the recommended way for development if you have Docker installed and the source code cloned.
 
 **Prerequisites:**
@@ -243,11 +249,14 @@ vn_gross_net_calculator/
 │   └── routers/
 │       ├── __init__.py
 │       └── gross_net.py
+│       └── saved_calculation_router.py
 │
 ├── core/           # Core calculation logic package (Backend Logic)
 │   ├── __init__.py
 │   ├── calculator.py
 │   ├── constants.py
+│   ├── crud_saved_calculations.py
+│   ├── database.py
 │   ├── exceptions.py # Custom exceptions
 │   └── models.py
 │
@@ -266,13 +275,12 @@ vn_gross_net_calculator/
 │       └── data_test_gross_net.xlsx # Example test data file
 │
 ├── .dockerignore   # Files to ignore for Docker builds
-├── .env.example    # Example environment variables file
 ├── .gitignore      # Files to ignore for Git
 ├── LICENSE         # Project license
 ├── pyproject.toml  # Project configuration and dependencies (PEP 621)
 ├── README.md       # This file
 ├── requirements.txt # Alternative/generated dependency list
-```
+├── TROUBLESHOOTING.md
 
 ---
 

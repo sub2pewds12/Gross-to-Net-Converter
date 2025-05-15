@@ -22,9 +22,11 @@ load_dotenv()
 # also set as an environment variable.
 # The default value here is more of a placeholder or for very basic local testing
 # if no environment variable is set.
-DATABASE_URL = os.getenv(
-    "DATABASE_URL", "postgresql://user:password@localhost:5432/appdb"
-)
+DB_USER = os.getenv("POSTGRES_USER", "postgres")  # Default now "postgres"
+DB_PASSWORD = os.getenv("POSTGRES_PASSWORD", "postgres_password")
+DB_NAME = os.getenv("POSTGRES_DB", "app_db")
+DB_HOST = os.getenv("DB_HOST", "db")
+DATABASE_URL = os.getenv("DATABASE_URL", f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:5432/{DB_NAME}")
 
 if DATABASE_URL.startswith("postgresql://user:password@localhost"):
     logger.warning(

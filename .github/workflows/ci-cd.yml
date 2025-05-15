@@ -77,6 +77,14 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/vn-gross-net-frontend:latest
 
+      - name: Build and push Database image
+        uses: docker/build-push-action@v6
+        with:
+          context: . # Build context for db.Dockerfile (usually project root)
+          file: ./docker/db.Dockerfile # Path to your database Dockerfile
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/vn-gross-net-db:latest
+
   deploy_to_render:
     name: Deploy to Render
     runs-on: ubuntu-latest
@@ -87,6 +95,7 @@ jobs:
     env:
       RENDER_API_HOOK_URL_ENV: ${{ secrets.RENDER_API_DEPLOY_HOOK_URL }}
       RENDER_FRONTEND_HOOK_URL_ENV: ${{ secrets.RENDER_FRONTEND_DEPLOY_HOOK_URL }}
+      RENDER_DATABASE_DEPLOY_HOOK_URL_ENV: ${{ secrets.RENDER_DATABASE_DEPLOY_HOOK_URL }} # New environment variable for the database deploy hook
 
     steps:
       - name: Trigger Render API Deploy
@@ -102,6 +111,20 @@ jobs:
             exit 1
           fi
           echo "Render API deployment successfully triggered (or request accepted)."
+
+      - name: Trigger Render Database Deploy
+        if: env.RENDER_DATABASE_DEPLOY_HOOK_URL_ENV != ''
+        run: |
+          echo "Triggering Render deployment for Database service/action..."
+          # This step assumes you have a specific deploy hook or mechanism for your Render database.
+          # This could be a hook for a Render Job that runs migrations, or another specific endpoint.
+          response_db=$(curl -s -X POST "${{ env.RENDER_DATABASE_DEPLOY_HOOK_URL_ENV }}")
+          echo "Render Database deploy hook response: $response_db"
+          if [ $? -ne 0 ]; then
+            echo "curl command failed for Database deploy hook!"
+            exit 1
+          fi
+          echo "Render Database deployment/action successfully triggered (or request accepted)."
 
       - name: Trigger Render Frontend Deploy
         # Check the environment variable

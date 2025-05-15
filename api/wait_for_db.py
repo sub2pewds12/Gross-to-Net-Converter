@@ -1,8 +1,8 @@
-
 import sys
 import time
 import subprocess
 import os
+
 
 def wait_for_db(host, port=5432):
     while True:
@@ -22,6 +22,7 @@ def wait_for_db(host, port=5432):
             print("Error checking database:", e, file=sys.stderr)
         time.sleep(2)
 
+
 def main():
     if len(sys.argv) < 3:
         print(f"Usage: {sys.argv[0]} host command [args...]", file=sys.stderr)
@@ -30,6 +31,7 @@ def main():
     cmd = sys.argv[2:]
     wait_for_db(host)
     os.execvp(cmd[0], cmd)
+
 
 if __name__ == "__main__":
     main()

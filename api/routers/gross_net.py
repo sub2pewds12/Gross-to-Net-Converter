@@ -9,7 +9,11 @@ import math  # Added to handle NaN values
 from fastapi import APIRouter, Body, HTTPException, status, UploadFile, File
 
 from core.calculator import calculate_gross_to_net
-from core.models import GrossNetInput, GrossNetResult, SavedCalculationDB  # Using existing models
+from core.models import (
+    GrossNetInput,
+    GrossNetResult,
+    SavedCalculationDB,
+)  # Using existing models
 from core.exceptions import (
     CoreCalculationError,
     InvalidRegionError,
@@ -20,6 +24,7 @@ from core.exceptions import (
 )
 import numpy as np  # ensure numpy is imported
 import json
+
 
 # Add a helper function to recursively replace NaN values with None.
 def replace_nan_in_data(data):
@@ -32,6 +37,7 @@ def replace_nan_in_data(data):
     else:
         return data
 
+
 # Existing dummy function for saving a single calculation
 def create_saved_calculation(calculation: GrossNetInput) -> dict:
     # Dummy implementation; replace with actual DB logic.
@@ -39,11 +45,20 @@ def create_saved_calculation(calculation: GrossNetInput) -> dict:
     saved["id"] = 1  # In a real implementation, the DB would assign an ID.
     return saved
 
+
 logger = logging.getLogger(__name__)
 router = APIRouter()
 
+
 def clean_nan(results):
-    return [{k: (None if (isinstance(v, float) and np.isnan(v)) else v) for k, v in row.items()} for row in results]
+    return [
+        {
+            k: (None if (isinstance(v, float) and np.isnan(v)) else v)
+            for k, v in row.items()
+        }
+        for row in results
+    ]
+
 
 API_EXPECTED_COLUMNS = {
     "gross": "GrossIncome",
@@ -172,7 +187,7 @@ async def api_calculate_batch_excel(
         )
     finally:
         await file.close()
-    
+
     missing_cols = [
         col for col in API_EXPECTED_COLUMNS.values() if col not in df_input.columns
     ]
@@ -180,12 +195,14 @@ async def api_calculate_batch_excel(
         msg = f"Missing required columns in Excel file: {', '.join(missing_cols)}. Expected: {list(API_EXPECTED_COLUMNS.values())}"
         logger.warning(f"Batch upload validation error: {msg}")
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=msg)
-    
+
     processed_results = []
     total_rows = len(df_input)
     logger.info(f"Starting batch processing for {total_rows} rows from Excel.")
     for index, row_data in df_input.iterrows():
-        original_row_dict = row_data.to_dict()  # Temporary conversion; final cleaning will be applied later.
+        original_row_dict = (
+            row_data.to_dict()
+        )  # Temporary conversion; final cleaning will be applied later.
         calculation_status = "Success"
         error_message = ""
         result_object_dict = None
@@ -218,11 +235,15 @@ async def api_calculate_batch_excel(
         ) as e:
             calculation_status = "Error"
             error_message = f"{type(e).__name__}: {str(e)}"
-            logger.warning(f"Error processing row {index + 1} from Excel: {error_message}")
+            logger.warning(
+                f"Error processing row {index + 1} from Excel: {error_message}"
+            )
         except (TypeError, KeyError, ValueError) as e:
             calculation_status = "Error"
             error_message = f"Data Error in row {index + 1}: {type(e).__name__} - {str(e)}. Check column names and data types."
-            logger.warning(f"Data error processing row {index + 1} from Excel: {error_message}")
+            logger.warning(
+                f"Data error processing row {index + 1} from Excel: {error_message}"
+            )
         except Exception as e:
             calculation_status = "Error"
             error_message = f"Unexpected Error in row {index + 1}: {str(e)}"
@@ -239,7 +260,9 @@ async def api_calculate_batch_excel(
 
     # Apply recursive cleaning to remove any nan values from the final results.
     cleaned_results = [replace_nan_in_data(result) for result in processed_results]
-    logger.info(f"Batch processing completed. Processed {len(cleaned_results)} rows after cleaning NaN.")
+    logger.info(
+        f"Batch processing completed. Processed {len(cleaned_results)} rows after cleaning NaN."
+    )
     return cleaned_results
 
 
@@ -252,7 +275,7 @@ async def save_calculation(calculation: GrossNetInput):  # Using GrossNetInput a
         logging.error(f"Error saving calculation: {e}")
         raise HTTPException(
             status_code=500,
-            detail=f"Could not create the saved calculation record. {e}"
+            detail=f"Could not create the saved calculation record. {e}",
         )
 
 
@@ -268,5 +291,5 @@ async def save_batch_calculations(calculations: List[GrossNetInput]):
         logging.error(f"Error saving batch calculations: {e}")
         raise HTTPException(
             status_code=500,
-            detail=f"Could not create the saved batch calculation records. {e}"
+            detail=f"Could not create the saved batch calculation records. {e}",
         )

@@ -26,7 +26,9 @@ DB_USER = os.getenv("POSTGRES_USER", "postgres")  # Default now "postgres"
 DB_PASSWORD = os.getenv("POSTGRES_PASSWORD", "postgres_password")
 DB_NAME = os.getenv("POSTGRES_DB", "app_db")
 DB_HOST = os.getenv("DB_HOST", "db")
-DATABASE_URL = os.getenv("DATABASE_URL", f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:5432/{DB_NAME}")
+DATABASE_URL = os.getenv(
+    "DATABASE_URL", f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:5432/{DB_NAME}"
+)
 
 if DATABASE_URL.startswith("postgresql://user:password@localhost"):
     logger.warning(

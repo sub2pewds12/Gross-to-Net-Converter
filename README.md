@@ -128,3 +128,5 @@ Please include tests and pass linting before opening a PR.
 ## License
 
 MIT License – see `LICENSE` for full text.
+@CCN-HUST
+Computation & Communication Networking
